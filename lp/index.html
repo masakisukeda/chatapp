@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ja" data-app="chat">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Chat.app — セミナー・ウェビナーを「盛り上げる！」ためのリアルタイム Q&A</title>
+<meta name="description" content="イベント当日の質問・リアクション・アンケートをリアルタイムで収集。日本語運用に特化した、シンプルなアプリです。現在は無料公開中です。">
+<link rel="canonical" href="https://drsp.cc/chat/lp/">
+<meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="theme-color" content="#0f1410">
+<link rel="icon" type="image/svg+xml" href="../img/favicon.svg?v=20260327b">
+<link rel="icon" type="image/png" sizes="32x32" href="../img/favicon-32x32.png?v=20260327b">
+<link rel="shortcut icon" href="../img/favicon-32x32.png?v=20260327b">
+<link rel="icon" href="../img/favicon.ico?v=20260327b">
+<link rel="apple-touch-icon" sizes="180x180" href="../img/apple-touch-icon.png?v=20260327b">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="Chat.app">
+<meta property="og:title" content="Chat.app — セミナー・ウェビナーを「盛り上げる！」ためのリアルタイム Q&amp;A">
+<meta property="og:description" content="イベント当日の質問・リアクション・アンケートをリアルタイムで収集。日本語運用に特化した、シンプルなアプリです。現在は無料公開中です。">
+<meta property="og:url" content="https://drsp.cc/chat/lp/">
+<meta property="og:image" content="https://drsp.cc/chat/img/ogp-1200x630.png">
+<meta property="og:image:secure_url" content="https://drsp.cc/chat/img/ogp-1200x630.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:url" content="https://drsp.cc/chat/lp/">
+<meta name="twitter:title" content="Chat.app — セミナー・ウェビナーを「盛り上げる！」ためのリアルタイム Q&amp;A">
+<meta name="twitter:description" content="イベント当日の質問・リアクション・アンケートをリアルタイムで収集。日本語運用に特化した、シンプルなアプリです。現在は無料公開中です。">
+<meta name="twitter:image" content="https://drsp.cc/chat/img/ogp-1200x630.png">
+<meta name="llms-summary" content="Chat.appはセミナー/ウェビナー向けのリアルタイムQ&Aアプリ。質問投稿、投票、アンケート、CSV出力をシンプルに運用できます。">
+<link rel="alternate" type="text/plain" href="/chat/lp/llms.txt" title="LLMs Summary">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph": [
+ {"@type":"SoftwareApplication","name":"Chat.app","applicationCategory":"BusinessApplication","operatingSystem":"Web","url":"https://drsp.cc/chat/lp/","description":"セミナー・ウェビナー向けのリアルタイムQ&Aアプリ。質問、リアクション、アンケート、ライブ投票を一元管理。","offers": {"@type":"Offer","price":"0","priceCurrency":"JPY"
+ }
+ },
+ {"@type":"FAQPage","mainEntity": [
+ {"@type":"Question","name":"セッション名（イベント名）はあとから変更できますか？","acceptedAnswer": {"@type":"Answer","text":"できます。運営メニューの「改名」から変更でき、投稿データもそのまま引き継がれます。"
+ }
+ },
+ {"@type":"Question","name":"投稿データはどのくらい保存されますか？","acceptedAnswer": {"@type":"Answer","text":"削除しない限り保持され、CSVでいつでもエクスポートできます。"
+ }
+ },
+ {"@type":"Question","name":"スマホから運営操作はできますか？","acceptedAnswer": {"@type":"Answer","text":"運営メニューはPC表示専用です。スマホは参加者向け操作を想定しています。"
+ }
+ }
+ ]
+ }
+ ]
+}
+</script>
+<style>
+/* inlined from ./index.page.css?v=20260329a */
+*{box-sizing:border-box;margin:0;padding:0}:root{--dk:#0f1410;--dk2:#171b14;--dk3:#1e2419;--dk4:#252c20;--ac:#c5ea1f;--ac2:#90b900;--ac3:#edf8bc;--ac4:rgba(197,234,31,0.12);--tx:#f0f4e8;--tx2:#9aab84;--tx3:#5a6850;--bdr:rgba(197,234,31,0.14);--bdr2:rgba(197,234,31,0.28);--red:#e84a5f;--topbar-bg:#121814;--topbar-line:rgba(197,234,31,0.24);--topbar-shadow:0 8px 24px rgba(0,0,0,.28);--fs-s:12px;--fs-m:14px;--fs-l:14px;--font-xl:16px;--font-2xl:16px;--font-3xl:16px;--radius-xs:8px;--radius-sm:10px;--radius-md:12px;--radius-lg:14px;--radius-pill:999px;--shadow:0 10px 26px rgba(10,14,20,.18);--shadow-strong:0 18px 46px rgba(10,14,20,.24)}body[data-theme=light]{--dk:#f4f6f8;--dk2:#ffffff;--dk3:#eef2f5;--dk4:#e7ecef;--ac:#a7cd1f;--ac2:#7b9c00;--ac3:#f0f8c7;--ac4:rgba(167,205,31,0.14);--tx:#12161a;--tx2:#4f5963;--tx3:#6e7781;--bdr:rgba(18,22,26,0.12);--bdr2:rgba(18,22,26,0.2);--red:#d34a56;--topbar-bg:#ffffff;--topbar-line:rgba(18,22,26,0.16);--topbar-shadow:0 6px 18px rgba(18,22,26,.10)}body{font-family:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;font-size:var(--fs-m);background:var(--dk);color:var(--tx);line-height:1.6;-webkit-text-size-adjust:100%;overflow-x:hidden}html{overflow-x:hidden}a{color:inherit;text-decoration:none}.w{max-width:1200px;margin:0 auto;padding:0 20px 100px}.topbar{background:var(--topbar-bg);box-shadow:var(--topbar-shadow);border-radius:var(--radius-lg);padding:10px 14px;display:flex;align-items:center;gap:10px}.theme-toggle{margin-left:auto;border:1px solid var(--topbar-line);background:var(--dk3);color:var(--tx);width:36px;height:36px;border-radius:var(--radius-sm);display:inline-flex;align-items:center;justify-content:center;font-size:var(--fs-m);cursor:pointer}.theme-toggle:hover{border-color:var(--ac2)}.topbar-logo{display:flex;align-items:center;color:var(--tx)}.topbar-logo img{display:block;height:24px;width:auto}.topbar-logo-mark{width:22px;height:22px;border-radius:6px;background:var(--ac);display:flex;align-items:center;justify-content:center;flex-shrink:0}.topbar-logo-mark svg{width:12px;height:12px;fill:var(--dk)}.topbar-session{background:var(--ac4);border:1px solid var(--bdr2);border-radius:var(--radius-pill);padding:6px 14px;font-size:var(--fs-s);color:var(--tx);display:flex;align-items:center;gap:8px;flex:0 0 min(520px,56vw);max-width:min(520px,56vw)}.topbar-session-dot{width:7px;height:7px;border-radius:50%;background:var(--ac);flex-shrink:0}.topbar-session-name{display:inline-block;max-width:0;overflow:hidden;white-space:nowrap;border-right:1px solid rgba(197,234,31,.85);animation:eventTyping 6.4s steps(24,end) infinite,caretBlink .8s step-end infinite;font-weight:700}@keyframes eventTyping{0%,12%{max-width:0}42%,72%{max-width:100%}100%{max-width:0}}@keyframes caretBlink{50%{border-color:transparent}}@keyframes heroEyebrowMarquee{0%{transform:translateX(0)}100%{transform:translateX(-100%)}}.hero-stack{margin-top:32px;display:grid;gap:10px}.hero-stack>.hero,.hero-stack>.topbar{width:100%}.hero{background:var(--dk2);border:1px solid var(--bdr);border-radius:var(--radius-lg);padding:56px 48px 52px;position:relative;overflow:hidden}.hero-glow{position:absolute;right:-80px;top:-120px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(197,234,31,.09) 0,transparent 68%);pointer-events:none}.hero-free,.beta{position:absolute;right:24px;top:24px;background:var(--dk3);border:1px solid var(--bdr);border-radius:var(--radius-md);padding:10px 14px;text-align:center;z-index:2;box-shadow:0 8px 20px rgba(0,0,0,.22)}.hero-free-num,.beta b{display:block;font-size:32px;font-weight:700;color:var(--ac);line-height:1}.hero-free-label,.beta span{font-size:var(--fs-s);color:var(--tx3);margin-top:4px;letter-spacing:.08em;text-transform:uppercase}.hero-eyebrow,.eyebrow{display:inline-flex;align-items:center;gap:7px;background:var(--ac4);border:1px solid var(--bdr2);color:var(--ac);border-radius:var(--radius-pill);padding:5px 14px;font-size:var(--fs-s);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:24px}.hero-eyebrow-dot,.eyebrow-dot{width:6px;height:6px;border-radius:50%;background:var(--ac)}.hero-eyebrow-main,.eyebrow-main{display:inline-block;min-width:0}.hero-eyebrow-meta,.eyebrow-meta{display:inline-flex;align-items:center;gap:6px;margin-left:8px;padding-left:8px;border-left:1px solid var(--bdr2);font-size:var(--fs-s);letter-spacing:.04em;text-transform:none;color:var(--tx2)}.hero-eyebrow-meta-marquee{display:inline-block;white-space:nowrap}h1{font-size:clamp(30px,5.4vw,52px);font-weight:700;line-height:1.14;letter-spacing:-.02em;position:relative;z-index:2;overflow-wrap:anywhere;word-break:break-word}h1 em{font-style:normal;color:var(--ac)}.h1-line{display:block}.hero-sub{margin-top:18px;font-size:var(--fs-l);color:var(--tx2);max-width:100%;line-height:1.7;position:relative}.hero-actions,.actions{margin-top:34px;display:flex;justify-content:flex-start;align-items:center;gap:12px;flex-wrap:wrap;position:relative;z-index:2}.btn-icon{width:16px;height:16px;display:inline-block;object-fit:contain;vertical-align:-2px;margin-right:6px}.btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--ac);color:var(--dk);font-family:inherit;font-weight:700;font-size:var(--fs-m);border:none;border-radius:var(--radius-pill);padding:14px 30px;min-height:42px;letter-spacing:.02em;cursor:pointer}.btn-primary:hover{background:#b3d800}.btn-ghost{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--bdr2);color:var(--tx);font-family:inherit;font-size:var(--fs-s);font-weight:700;border-radius:var(--radius-pill);padding:13px 24px;min-height:42px;background:linear-gradient(180deg,var(--dk3),var(--dk2))}.btn-ghost:hover{border-color:var(--ac);color:var(--tx);transform:translateY(-1px)}.btn-ghost:focus-visible,.btn-primary:focus-visible,.theme-toggle:focus-visible{outline:2px solid var(--ac2);outline-offset:2px}.btn-ghost:disabled,.btn-ghost[aria-disabled=true],.btn-primary:disabled,.btn-primary[aria-disabled=true]{opacity:.55;cursor:not-allowed;box-shadow:none}.sec{margin-top:64px}.sec-label{font-size:var(--fs-s);font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ac2);margin-bottom:10px}.sec-title{font-size:clamp(22px,3.8vw,32px);font-weight:700;letter-spacing:-.02em;line-height:1.2}.sec-sub{margin-top:10px;font-size:var(--fs-m);color:var(--tx2)}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}.card{background:var(--dk2);border:1px solid var(--bdr);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow);transition:border-color .18s ease,transform .18s ease}.card:hover{border-color:var(--bdr2);transform:translateY(-1px)}.feat-icon{width:36px;height:36px;border-radius:var(--radius-sm);background:var(--ac4);display:flex;align-items:center;justify-content:center;margin-bottom:14px}.feat-icon svg{width:18px;height:18px;fill:var(--ac)}.feat-title{font-size:var(--fs-m);font-weight:700;margin-bottom:6px;color:var(--tx)}.feat-desc{font-size:var(--fs-s);color:var(--tx2);line-height:1.55}.trust-note{margin-top:14px;padding:10px 12px;border:1px solid var(--bdr);border-radius:var(--radius-sm);background:rgba(197,234,31,.06);font-size:var(--fs-s);color:var(--tx2)}.mockup-wrap{background:var(--dk3);border:1px solid var(--bdr);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:16px;margin-top:26px;overflow:hidden}.mock-split{--mock-device-h:560px;display:grid;grid-template-columns:minmax(0,1fr) 328px;gap:12px;align-items:stretch}.mock-col{min-width:0;display:flex;flex-direction:column;overflow:hidden}.mock-label{font-size:var(--fs-s);color:var(--tx2);margin:0 0 8px 2px}.mock-col>.mock-q{height:100%;display:flex;flex-direction:column;gap:8px}.app-frame{height:100%;display:flex;flex-direction:column;background:var(--dk2);border:1px solid var(--bdr);border-radius:var(--radius-md);overflow:hidden}.app-frame-pc{border-radius:0 0 12px 12px;border-top:none}.frame-chrome-pc{height:30px;display:flex;align-items:center;gap:6px;padding:0 10px;background:var(--dk4);border:1px solid var(--bdr);border-bottom:none;border-radius:12px 12px 0 0}.frame-dot{width:8px;height:8px;border-radius:50%;display:inline-block}.frame-dot.r{background:#ff6b6b}.frame-dot.y{background:#ffd166}.frame-dot.g{background:#8ac926}.frame-url{margin-left:8px;font-size:var(--fs-s);color:var(--tx3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mock-col:first-child .app-frame-pc{min-height:560px}.phone-shell{background:var(--dk4);border:1px solid var(--bdr2);border-radius:24px;padding:0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);display:flex;flex-direction:column;overflow:hidden}.phone-notch{width:96px;height:16px;border-radius:var(--radius-pill);background:#0a0e0b;margin:7px auto;border:1px solid rgba(255,255,255,.04)}.app-frame-mobile{border-radius:14px}.phone-home{width:90px;height:4px;border-radius:var(--radius-pill);background:rgba(255,255,255,.22);margin:10px auto 0}.frame-chrome-pc+.app-frame-pc{height:calc(var(--mock-device-h) - 30px);min-height:0}.phone-shell{height:var(--mock-device-h)}.phone-shell .app-frame-mobile{height:calc(var(--mock-device-h) - 30px);flex:0 0 auto}.phone-shell .app-frame-mobile{min-height:0}.mock-col:first-child .app-frame-pc{min-height:0}.app-frame-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;background:var(--dk3);border-bottom:1px solid var(--bdr)}.app-frame-title{font-size:var(--fs-s);font-weight:700;color:var(--tx)}.app-frame-badge{font-size:var(--fs-s);color:var(--tx2);border:1px solid var(--bdr);border-radius:var(--radius-pill);padding:2px 8px}.app-frame-body{flex:1;min-height:0;padding:10px;display:flex;flex-direction:column;gap:8px;overflow:hidden}.app-panel{background:var(--dk3);border:1px solid var(--bdr);border-radius:var(--radius-sm);padding:8px}.app-row{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:var(--fs-s);color:var(--tx2);margin-bottom:6px}.app-row:last-child{margin-bottom:0}.app-footer{min-height:30px;padding:6px 10px;border-top:1px solid var(--bdr);font-size:var(--fs-s);line-height:1.2;color:var(--tx3);background:rgba(0,0,0,.16);display:flex;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.app-panel.fill{flex:1;min-height:120px;display:flex;flex-direction:column;justify-content:flex-start;gap:6px}.app-fill-title{font-size:var(--fs-s);font-weight:700;color:var(--tx2);margin-bottom:6px}.app-fill-line{height:7px;border-radius:var(--radius-pill);background:rgba(197,234,31,.12);margin-bottom:6px}.app-fill-line.w1{width:92%}.app-fill-line.w2{width:78%}.app-fill-line.w3{width:86%}.app-fill-line.w4{width:66%}.app-fill-line.w5{width:74%}.app-fill-line.w6{width:58%}.mock-q{background:var(--dk2);border:1px solid var(--bdr);border-radius:var(--radius-md);padding:16px 18px;margin-bottom:10px}.mock-q:last-child{margin-bottom:0}.mock-chips{display:flex;align-items:center;gap:6px;margin-bottom:10px}.mock-chip{display:inline-block;border-radius:var(--radius-pill);padding:3px 10px;font-size:var(--fs-s);font-weight:700}.chip-unread{background:var(--ac4);color:var(--ac);border:1px solid var(--bdr2)}.chip-pin{background:rgba(197,234,31,.07);color:var(--ac2);border:1px solid var(--bdr)}.mock-author{font-size:var(--fs-s);color:var(--tx3)}.mock-q-text{font-size:var(--font-xl);font-weight:700;color:var(--tx);margin-bottom:10px}.mock-replies{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.mock-reply{background:var(--dk4);border-radius:var(--radius-sm);padding:10px 12px}.mock-reply-text{font-size:var(--fs-s);color:var(--tx);margin-bottom:4px;line-height:1.4}.mock-reply-meta{font-size:var(--fs-s);color:var(--tx3)}.mock-reply-heart{font-size:var(--fs-s);font-weight:700;color:var(--red);margin-top:6px}.mock-actions{display:flex;justify-content:space-between;align-items:center}.mock-btns{display:flex;gap:8px}.mock-btn{background:var(--dk3);border:1px solid var(--bdr);border-radius:var(--radius-pill);padding:5px 13px;font-size:var(--fs-s);color:var(--tx2)}.mock-heart{background:var(--dk3);border:1px solid var(--bdr);border-radius:var(--radius-pill);padding:7px 16px;font-size:var(--fs-m);font-weight:900;color:var(--red)}.mock-q-dim{opacity:.55}.compare-scroll{overflow-x:auto;border-radius:var(--radius-lg);border:1px solid var(--bdr);box-shadow:var(--shadow);margin-top:26px}table{width:100%;border-collapse:collapse;font-size:var(--fs-m);min-width:500px}thead tr{background:var(--dk3)}thead th{padding:13px 16px;text-align:left;font-size:var(--fs-s);font-weight:700;letter-spacing:.07em;text-transform:none;color:var(--tx2)}thead th.th-chat{color:var(--ac)}thead th:first-child{border-radius:13px 0 0 0}thead th:last-child{border-radius:0 13px 0 0}tbody tr{border-top:1px solid var(--bdr)}tbody tr:hover{background:rgba(197,234,31,.03)}td{padding:11px 16px;vertical-align:middle}td:first-child{font-size:var(--fs-s);font-weight:700;color:var(--tx2)}.chip{display:inline-flex;align-items:center;border-radius:var(--radius-pill);padding:3px 10px;font-size:var(--fs-s);font-weight:700;white-space:nowrap}.c-win{background:var(--ac4);color:var(--ac);border:1px solid var(--bdr2)}.c-ok{background:rgba(255,255,255,.06);color:var(--tx2);border:1px solid var(--bdr)}.c-mid{background:rgba(197,160,0,.12);color:#c9a800;border:1px solid rgba(197,160,0,.25)}.c-no{background:rgba(255,255,255,.04);color:var(--tx3);border:1px solid var(--bdr)}td.hl{background:rgba(197,234,31,.04)}tfoot td{background:var(--dk3);font-size:var(--fs-s);color:var(--tx3);padding:8px 16px;font-style:italic;border-top:1px solid var(--bdr)}.device-compare table{min-width:0;table-layout:fixed}.device-compare td,.device-compare th{word-break:break-word;overflow-wrap:anywhere;vertical-align:top}.device-compare .chip{white-space:normal;line-height:1.4}.faq-list{margin-top:20px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:stretch}.faq-item{background:var(--dk2);border:1px solid var(--bdr);border-radius:var(--radius-lg);overflow:hidden}.faq-cat{padding:11px 14px 10px;font-size:var(--fs-s);font-weight:700;color:var(--ac2);letter-spacing:.04em;background:rgba(197,234,31,.05);border-bottom:1px solid var(--bdr)}.faq-row{padding:11px 14px 12px;border-top:1px solid var(--bdr)}.faq-row:first-of-type{border-top:none}.faq-q{font-size:var(--fs-s);font-weight:700;color:var(--tx);line-height:1.5}.faq-a{margin-top:5px;font-size:var(--fs-s);color:var(--tx2);line-height:1.6}.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px}.sum-card{border-radius:var(--radius-lg);padding:26px 22px}.sum-chat{background:var(--dk2);border:1px solid var(--bdr2)}.sum-other{background:var(--dk3);border:1px solid var(--bdr)}.sum-head{font-size:var(--fs-s);font-weight:700;letter-spacing:.04em;text-transform:none;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--bdr)}.sum-chat .sum-head{color:var(--ac)}.sum-other .sum-head{color:var(--tx3)}.sum-item{display:flex;align-items:flex-start;gap:9px;margin-bottom:10px;font-size:var(--fs-m);line-height:1.55}.sum-dot{width:5px;height:5px;border-radius:50%;margin-top:6px;flex-shrink:0}.sum-chat .sum-dot{background:var(--ac)}.sum-chat .sum-item{color:var(--tx)}.sum-other .sum-dot{background:var(--tx3)}.sum-other .sum-item{color:var(--tx2)}.faq-item:hover,.sum-card:hover{border-color:var(--bdr2);box-shadow:var(--shadow-strong)}.cta{margin-top:64px;background:var(--dk2);border:1px solid var(--bdr2);border-radius:var(--radius-lg);padding:52px 48px;text-align:center;position:relative;overflow:hidden}.cta-glow{position:absolute;left:50%;top:-100px;transform:translateX(-50%);width:560px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(197,234,31,.07) 0,transparent 70%);pointer-events:none}.cta h2{font-size:clamp(24px,4vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1.18;position:relative}.cta h2 em{font-style:normal;color:var(--ac)}.cta p{margin-top:14px;font-size:var(--fs-m);color:var(--tx2);position:relative}.cta .actions{margin-top:22px;display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;position:relative}.cta-manual{margin-top:10px;font-size:var(--fs-s);color:var(--tx2)}.cta-manual a{color:var(--tx2);text-decoration:none;border-bottom:1px solid rgba(154,171,132,.5)}.cta-manual a:hover{color:var(--tx);border-bottom-color:var(--tx2)}.footer{margin-top:48px;text-align:center;font-size:var(--fs-s);color:var(--tx3);padding-bottom:24px;border-top:1px solid var(--bdr);padding-top:24px}.footer a{color:var(--tx2);text-decoration:none}@media(max-width:980px){.grid{grid-template-columns:1fr 1fr}}@media(max-width:760px){.faq-list{grid-template-columns:1fr}.app-footer{min-height:28px;padding:5px 8px}.mock-col:first-child .app-frame-pc{min-height:auto;height:auto}.phone-shell{height:auto}.frame-url{font-size:var(--fs-s)}.phone-shell{padding:8px 8px 12px;border-radius:20px}.phone-notch{width:82px;height:14px;margin-bottom:6px}.w{padding:8px 14px 84px}.hero-stack{gap:10px}.topbar{padding:8px 10px;border-radius:14px;gap:8px;border:1px solid var(--bdr);background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(0,0,0,.08))}.topbar-logo img{height:22px}.topbar-session{min-width:0;max-width:none;flex:1;padding:6px 10px;border-color:var(--bdr2)}.topbar-session-name{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-right:none;animation:none;font-size:var(--fs-s);font-weight:700}.theme-toggle{margin-left:0;flex:0 0 auto;width:32px;height:32px;font-size:var(--fs-m)}.hero{padding:30px 18px 34px;border-radius:18px;background:linear-gradient(180deg,rgba(197,234,31,.04),rgba(0,0,0,.02) 26%,transparent 100%)}.hero-eyebrow,.eyebrow{padding:6px 10px;gap:6px;flex-wrap:nowrap;margin-bottom:14px;max-width:100%;overflow:hidden}.hero-eyebrow-main,.eyebrow-main{flex:0 0 auto;max-width:none;font-size:var(--fs-s);letter-spacing:.03em;white-space:nowrap;overflow:visible;text-overflow:clip}.hero-eyebrow-meta,.eyebrow-meta{flex:1 1 auto;min-width:0;margin-left:6px;padding-left:6px;border-left:1px solid var(--bdr2);font-size:var(--fs-s);white-space:nowrap;overflow:hidden;text-overflow:clip}.hero-eyebrow-meta-marquee{padding-left:100%;animation:heroEyebrowMarquee 12s linear infinite}.h1-line1,.h1-line2,.h1-line3{white-space:normal}.hero-sub{font-size:var(--fs-m);line-height:1.58;margin-top:12px;overflow-wrap:anywhere;word-break:break-word}.hero-actions,.actions{margin-top:22px;justify-content:flex-start}.cta,.hero,.mockup-wrap,.sec,.topbar{max-width:100%;overflow-x:clip}.btn-primary{max-width:100%;white-space:normal;text-align:center;padding:13px 24px;box-shadow:0 8px 18px rgba(149,183,11,.24)}.sec{margin-top:52px}.mock-split{grid-template-columns:1fr}.device-compare table{font-size:var(--fs-s)}.device-compare td,.device-compare th{padding:9px 10px}.hero-free,.beta{display:none}.sum-grid{grid-template-columns:1fr}.cta{padding:36px 20px}.mock-replies{grid-template-columns:1fr}.grid{grid-template-columns:1fr}}@media(max-width:430px){.hero{padding:28px 16px 32px}}@media(max-width:400px){.grid{grid-template-columns:1fr}}@media(max-width:390px){h1{font-size:clamp(24px,7vw,32px);line-height:1.2}.h1-line1,.h1-line2,.h1-line3{white-space:normal}.card{padding:16px}}@media(max-width:900px){.sum-grid{grid-template-columns:1fr}}
+
+</style>
+<style>
+.updates-box{margin-top:64px}
+.updates-list{margin-top:18px;display:grid;gap:10px}
+.updates-item{background:var(--dk2);border:1px solid var(--bdr);border-radius:var(--radius-lg);padding:12px 14px;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:start}
+.updates-main{min-width:0;display:grid;gap:4px}
+.updates-text{font-size:var(--fs-m);font-weight:700;line-height:1.55;color:var(--tx)}
+.updates-date{font-size:var(--fs-s);color:var(--tx3)}
+.updates-post{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:6px 12px;border-radius:var(--radius-pill);border:1px solid var(--bdr2);background:linear-gradient(180deg,var(--dk3),var(--dk2));font-size:var(--fs-s);font-weight:700;color:var(--tx2);white-space:nowrap}
+.updates-post:hover{color:var(--tx);border-color:var(--ac2);background:var(--ac4)}
+@media(max-width:760px){.updates-item{grid-template-columns:1fr}.updates-post{justify-self:flex-end}}
+</style>
+<link rel="stylesheet" href="/app/lp-common.css?v=20260330h">
+</head>
+<body>
+<div class="w">
+
+ <!-- topbar + hero -->
+ <div class="hero-stack">
+ <div class="topbar">
+ <div class="topbar-logo"><img src="../img/logo-chatapp-dark.svg" alt="Chat.app" id="brandLogo"></div>
+ <div class="topbar-session">
+ <span class="topbar-session-dot"></span>
+ <span class="topbar-session-name">あなたのイベント名を入力するとセッションができます</span>
+ </div>
+ <button class="theme-toggle" id="themeToggle" aria-label="テーマ切替">☾</button>
+ </div>
+
+ <section class="hero">
+ <div class="beta"><b>Free</b><span>Web App</span></div>
+ <div class="eyebrow">
+ <span class="eyebrow-dot"></span>
+ <span class="eyebrow-main">イベント運営者向け</span>
+ <span class="eyebrow-meta"><span class="hero-eyebrow-meta-marquee">全てのイベント運営者に「盛り上げて」いただきたい</span></span>
+ </div>
+ <h1>セミナー・ウェビナー<br><em>リアルタイム Q&amp;Aアプリ</em></h1>
+ <p class="hero-sub">イベント当日の質問・リアクション・アンケートをリアルタイムで収集。<br>日本語運用に特化した、シンプルなアプリです。現在は無料公開中です。</p>
+ <div class="actions">
+ <a class="btn-primary" href="https://drsp.cc/chat/?s=webinar-demo&v=screen" target="_blank" rel="noopener noreferrer"><img class="btn-icon" src="../img/favicon.svg" alt="">デモを見る →</a>
+ <a class="btn-ghost" href="https://drsp.cc/chat/manual.html" target="_blank" rel="noopener noreferrer">マニュアル</a>
+ </div>
+ </section>
+ </div>
+
+ <!-- target -->
+ <section class="sec">
+ <div class="sec-label">Target</div>
+ <div class="sec-title">こんなイベント運営者に向いています</div>
+ <div class="sec-sub">双方向コミュニケーションを高めたい現場で、最小コストで運用を始められます。</div>
+ <div class="grid">
+ <div class="card">
+ <div class="feat-icon">
+ <svg viewBox="0 0 18 18"><path d="M2 4h14v2H2zm0 4h10v2H2zm0 4h14v2H2z"/></svg>
+ </div>
+ <div class="feat-title">セミナー・ウェビナー運営</div>
+ <div class="feat-desc">進行中の質問をその場で集め、投票順で取り上げる運営をしたいチーム向け。</div>
+ </div>
+ <div class="card">
+ <div class="feat-icon">
+ <svg viewBox="0 0 18 18"><path d="M9 15S2 10.5 2 6a4 4 0 0 1 7-2.6A4 4 0 0 1 16 6c0 4.5-7 9-7 9z"/></svg>
+ </div>
+ <div class="feat-title">参加者の反応を可視化したい</div>
+ <div class="feat-desc">リアクション・アンケート・投票をリアルタイムに見ながら、進行を調整したい現場向け。</div>
+ </div>
+ <div class="card">
+ <div class="feat-icon">
+ <svg viewBox="0 0 18 18"><rect x="2" y="2" width="14" height="14" rx="2"/><path d="M5 9h8M5 12h6" stroke="var(--ac)" stroke-width="1.5" fill="none"/></svg>
+ </div>
+ <div class="feat-title">まず無料で試したい</div>
+ <div class="feat-desc">日本語運用に特化したQ&Aを、複雑な設定なしでまず実運用に載せたいチーム向け。</div>
+ </div>
+ </div>
+ </section>
+
+ <!-- features -->
+ <section class="sec">
+ <div class="sec-label">Functions</div>
+ <div class="sec-title">「盛り上げる！」ために必要な機能</div>
+ <div class="sec-sub">URLを共有するだけで、投稿・リアクション・アンケート・投票をすぐ始められます。</div>
+ <div class="grid">
+ <div class="card">
+ <div class="feat-icon">
+ <svg viewBox="0 0 18 18"><path d="M2 3h14a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H6l-4 4V4a1 1 0 0 1 1-1z"/></svg>
+ </div>
+ <div class="feat-title">Q&amp;A 投稿 &amp; いいね</div>
+ <div class="feat-desc">参加者が質問を投稿し、❤️で投票。票数順で優先して取り上げられます。</div>
+ </div>
+ <div class="card">
+ <div class="feat-icon">
+ <svg viewBox="0 0 18 18"><path d="M3 3h12v2H3zm0 4h8v2H3zm0 4h5v2H3z"/></svg>
+ </div>
+ <div class="feat-title">ピン留め &amp; 未読管理</div>
+ <div class="feat-desc">重要な質問をピン固定。未読表示で新着を整理し、既読で運営管理できます。</div>
+ </div>
+ <div class="card">
+ <div class="feat-icon">
+ <svg viewBox="0 0 18 18"><path d="M9 15S2 10.5 2 6a4 4 0 0 1 7-2.6A4 4 0 0 1 16 6c0 4.5-7 9-7 9z"/></svg>
+ </div>
+ <div class="feat-title">ライブアンケート</div>
+ <div class="feat-desc">満足度・理解度の❤️評価と次回テーマ記述を収集し、結果をリアルタイム表示。</div>
+ </div>
+ <div class="card">
+ <div class="feat-icon">
+ <svg viewBox="0 0 18 18"><rect x="2" y="10" width="3" height="6" rx="1"/><rect x="7.5" y="6" width="3" height="10" rx="1"/><rect x="13" y="2" width="3" height="14" rx="1"/></svg>
+ </div>
+ <div class="feat-title">CSV 出力</div>
+ <div class="feat-desc">投稿・返信・票数・ステータスをワンクリックで出力し、終了後の集計に活用。</div>
+ </div>
+ <div class="card">
+ <div class="feat-icon">
+ <svg viewBox="0 0 18 18"><rect x="2" y="2" width="14" height="14" rx="2"/><rect x="5" y="10" width="2" height="4"/><rect x="8" y="7" width="2" height="7"/><rect x="11" y="5" width="2" height="9"/></svg>
+ </div>
+ <div class="feat-title">ライブ投票（棒グラフ）</div>
+ <div class="feat-desc">運営が質問を出し、投票を棒グラフでリアルタイム表示。タイマー付きで最大3件まで進行できます。</div>
+ </div>
+ <div class="card">
+ <div class="feat-icon">
+ <svg viewBox="0 0 18 18"><path d="M10 3H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V8"/><polyline points="10 3 15 3 15 8" fill="none" stroke="var(--ac)" stroke-width="1.5"/><line x1="10" y1="3" x2="15" y2="8" stroke="var(--ac)" stroke-width="1.5"/></svg>
+ </div>
+ <div class="feat-title">Google フォーム連携</div>
+ <div class="feat-desc">外部フォームURLをアンケート画面で案内し、既存フォームと組み合わせ可能。</div>
+ </div>
+ </div>
+ <div class="trust-note">ログイン不要＆個人情報などは扱わない設計なので、安心してご利用いただけます。</div>
+ </section>
+
+ <!-- device compare -->
+ <section class="sec device-compare">
+ <div class="sec-label">Device</div>
+ <div class="sec-title">PC × スマホの機能比較</div>
+ <div class="sec-sub">運営と参加者で役割を分けると、当日の進行がスムーズです。</div>
+ <div class="compare-scroll">
+ <table>
+ <thead>
+ <tr>
+ <th style="width:28%">項目</th>
+ <th style="width:36%">PCビュー（運営）</th>
+ <th style="width:36%">スマホビュー（参加者）</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>主な目的</td>
+ <td><span class="chip c-win">運営管理・全体把握</span></td>
+ <td><span class="chip c-ok">投稿・閲覧・アンケート回答</span></td>
+ </tr>
+ <tr>
+ <td>想定ユーザー</td>
+ <td><span class="chip c-win">事務局・運営スタッフ</span></td>
+ <td><span class="chip c-ok">イベント参加者</span></td>
+ </tr>
+ <tr>
+ <td>Q&A操作</td>
+ <td><span class="chip c-win">既読/未読・ピン留め・並び替え</span></td>
+ <td><span class="chip c-ok">質問投稿・❤️・返信</span></td>
+ </tr>
+ <tr>
+ <td>アンケート操作</td>
+ <td><span class="chip c-win">結果確認・項目調整</span></td>
+ <td><span class="chip c-ok">❤️評価・テーマ入力</span></td>
+ </tr>
+ <tr>
+ <td>投票操作</td>
+ <td><span class="chip c-win">質問提示・編集・新規追加・リアルタイム集計</span></td>
+ <td><span class="chip c-ok">選択肢への投票参加</span></td>
+ </tr>
+ <tr>
+ <td>削除操作</td>
+ <td><span class="chip c-win">管理用操作に対応</span></td>
+ <td><span class="chip c-mid">自分の投稿中心</span></td>
+ </tr>
+ <tr>
+ <td>画面レイアウト</td>
+ <td><span class="chip c-win">情報量重視（広い表示）</span></td>
+ <td><span class="chip c-ok">タップしやすい最適化UI</span></td>
+ </tr>
+ </tbody>
+ </table>
+ </div>
+ </section>
+
+ <!-- UI mockup -->
+ <section class="sec">
+ <div class="sec-label">Screens</div>
+ <div class="sec-title">画面イメージ</div>
+ <div class="sec-sub">PC運営とスマホ参加者の見え方を並べて確認できます。</div>
+ <div class="mockup-wrap">
+ <div class="mock-split">
+ <div class="mock-col">
+ <p class="mock-label">PCビュー（運営）</p>
+ <div class="frame-chrome-pc"><span class="frame-dot r"></span><span class="frame-dot y"></span><span class="frame-dot g"></span><span class="frame-url">https://drsp.cc/chat/?s=webinar-2026&amp;v=screen</span></div>
+ <div class="app-frame app-frame-pc">
+ <div class="app-frame-head">
+ <div class="app-frame-title">Chat.app / webinar-2026</div>
+ <div class="app-frame-badge">アンケート</div>
+ </div>
+ <div class="app-frame-body">
+ <div class="app-panel">
+ <div class="mock-q-text" style="font-size:var(--fs-m);margin-bottom:6px;">結果</div>
+ <div class="app-row"><span>進行スピード</span><span class="mock-heart">♥♥♥♥♥ 12票</span></div>
+ <div class="app-row"><span>講義資料</span><span class="mock-heart">♥♥♥♥ 9票</span></div>
+ <div class="app-row"><span>マイク音量</span><span class="mock-heart">♥♥♥ 6票</span></div>
+ <div class="app-row"><span>質疑応答</span><span class="mock-heart">♥♥♥♥ 8票</span></div>
+ </div>
+ <div class="app-panel">
+ <div class="mock-reply-text">次回テーマ 合計 7件</div>
+ <div class="mock-reply-meta">1. AWS運用（3票） 2. UIデザイン（2票） 3. DiSA事例（2票）</div>
+ </div>
+ <div class="app-panel fill">
+ <div class="app-fill-title">リアルタイム更新中</div>
+ <div class="app-fill-line w1"></div>
+ <div class="app-fill-line w2"></div>
+ <div class="app-fill-line w3"></div>
+ <div class="app-fill-line w4"></div>
+ <div class="app-fill-line w5"></div>
+ <div class="app-fill-line w6"></div>
+ </div>
+ </div>
+ <div class="app-footer">© 2026 一般社団法人ディレクションサポート協会</div>
+ </div>
+ </div>
+ <div class="mock-col">
+ <p class="mock-label">スマホビュー（参加者）</p>
+ <div class="phone-shell">
+ <div class="phone-notch"></div>
+ <div class="app-frame app-frame-mobile">
+ <div class="app-frame-head">
+ <div class="app-frame-title">Chat.app</div>
+ <div class="app-frame-badge">表示/投稿/アンケート/投票</div>
+ </div>
+ <div class="app-frame-body">
+ <div class="app-panel">
+ <div class="mock-q-text" style="font-size:var(--fs-m);margin-bottom:6px;">入力</div>
+ <div class="app-row"><span>進行スピード / あなた 2/5</span><span class="mock-btn">❤️ +1</span></div>
+ <div class="app-row"><span>講義資料 / あなた 1/5</span><span class="mock-btn">❤️ +1</span></div>
+ <div class="app-row"><span>マイク音量 / あなた 3/5</span><span class="mock-btn">❤️ +1</span></div>
+ <div class="app-row"><span>質疑応答 / あなた 0/5</span><span class="mock-btn">❤️ +1</span></div>
+ </div>
+ <div class="app-panel">
+ <div class="mock-reply-text">聞きたいテーマ（記述式）</div>
+ <div class="mock-reply-meta">例）実践事例、運用フロー、失敗パターン</div>
+ </div>
+ <div class="app-panel fill">
+ <div class="app-fill-title">入力ガイド</div>
+ <div class="app-fill-line w1"></div>
+ <div class="app-fill-line w3"></div>
+ <div class="app-fill-line w2"></div>
+ <div class="app-fill-line w4"></div>
+ <div class="app-fill-line w6"></div>
+ </div>
+ </div>
+ <div class="app-footer">画面下部: フッター / メニュー</div>
+ </div>
+ <div class="phone-home"></div>
+ </div>
+ </div>
+ </div>
+ </div>
+ </section>
+
+
+ <!-- compare -->
+ <section class="sec">
+ <div class="sec-label">Compare</div>
+ <div class="sec-title">Chat.app と有料 Q&amp;A サービスの違い</div>
+ <div class="sec-sub">機能・運用・コストの観点で違いを整理しています。</div>
+ <div class="compare-scroll">
+ <table>
+ <thead>
+ <tr>
+ <th style="width:32%">機能・特性</th>
+ <th class="th-chat" style="width:34%">Chat.app</th>
+ <th style="width:34%">有料 Q&amp;A サービス（参考）</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr><td>Q&amp;A 投稿</td><td class="hl"><span class="chip c-win">◎ 対応</span></td><td><span class="chip c-ok">◎ 対応</span></td></tr>
+ <tr><td>いいね投票</td><td class="hl"><span class="chip c-win">◎ 対応</span></td><td><span class="chip c-ok">◎ 対応</span></td></tr>
+ <tr><td>返信（コメントへのコメント）</td><td class="hl"><span class="chip c-win">◎ 対応</span></td><td><span class="chip c-mid">△ 用途による</span></td></tr>
+ <tr><td>ピン留め</td><td class="hl"><span class="chip c-win">◎ 対応</span></td><td><span class="chip c-ok">◎ 対応</span></td></tr>
+ <tr><td>未読管理</td><td class="hl"><span class="chip c-win">◎ 表示で未読中心運用</span></td><td><span class="chip c-mid">△ 限定的</span></td></tr>
+ <tr><td>ライブアンケート</td><td class="hl"><span class="chip c-win">◎ ハート＋テーマ記述</span></td><td><span class="chip c-ok">◎ 多形式で強い</span></td></tr>
+ <tr><td>ライブ投票（最大3件・タイマー）</td><td class="hl"><span class="chip c-win">◎ 対応</span></td><td><span class="chip c-mid">△ プラン/機能による</span></td></tr>
+ <tr><td>Google フォーム導線</td><td class="hl"><span class="chip c-win">◎ 対応</span></td><td><span class="chip c-mid">△ 別導線設計</span></td></tr>
+ <tr><td>CSV 出力</td><td class="hl"><span class="chip c-win">◎ 無制限</span></td><td><span class="chip c-ok">◎ プラン依存あり</span></td></tr>
+ <tr><td>外部ツール連携</td><td><span class="chip c-no">× なし</span></td><td><span class="chip c-ok">◎ 高度連携</span></td></tr>
+ <tr><td>分析・レポート</td><td><span class="chip c-mid">△ 最小限</span></td><td><span class="chip c-ok">◎ 充実</span></td></tr>
+ <tr><td>カスタム速度</td><td class="hl"><span class="chip c-win">◎ 即時対応可</span></td><td><span class="chip c-mid">△ 既製機能中心</span></td></tr>
+ <tr><td>コスト</td><td class="hl"><span class="chip c-win">◎ 完全無料</span></td><td><span class="chip c-mid">△〜◎ プラン次第</span></td></tr>
+ </tbody>
+ <tfoot>
+ <tr><td colspan="3">※ 有料 Q&amp;A サービスの評価は一般的な傾向に基づく参考比較です。サービスやプランにより異なります。<br>※ 機能はフィードバックによりどんどんブラッシュアップしていきます！</td></tr>
+ </tfoot>
+ </table>
+ </div>
+ </section>
+
+ <!-- summary -->
+ <section class="sec">
+ <div class="sec-label">Summary</div>
+ <div class="sec-title">用途に応じた選び方</div>
+ <div class="sec-sub">セミナー・ウェビナーの用途に応じて使い分けください</div>
+ <div class="sum-grid">
+ <div class="sum-card sum-chat">
+ <div class="sum-head">Chat.app が向いているとき</div>
+ <div class="sum-item"><span class="sum-dot"></span>日本語の現場運用に合わせたカスタムが必要</div>
+ <div class="sum-item"><span class="sum-dot"></span>まずは無料公開中のうちに試したい</div>
+ <div class="sum-item"><span class="sum-dot"></span>未読管理・ピン留めなど細かい運営管理を重視</div>
+ <div class="sum-item"><span class="sum-dot"></span>Google フォームなど外部フォームと組み合わせて使いたい</div>
+ <div class="sum-item"><span class="sum-dot"></span>小〜中規模のイベント・勉強会</div>
+ </div>
+ <div class="sum-card sum-other">
+ <div class="sum-head">有料サービスが向いているとき</div>
+ <div class="sum-item"><span class="sum-dot"></span>Teams / Zoom / PPT との高度な統合が必要</div>
+ <div class="sum-item"><span class="sum-dot"></span>多形式アンケートや詳細な分析レポートが必要</div>
+ <div class="sum-item"><span class="sum-dot"></span>大規模・国際的なイベントでの実績が必要</div>
+ <div class="sum-item"><span class="sum-dot"></span>多言語対応・大規模運用の成熟度が必要</div>
+ <div class="sum-item"><span class="sum-dot"></span>企業公式イベントで既存ツールと連携したい</div>
+ </div>
+ </div>
+ </section>
+
+ <!-- faq -->
+ <section class="sec">
+ <div class="sec-label">FAQ</div>
+ <div class="sec-title">よくある質問</div>
+ <div class="faq-list">
+ <div class="faq-item">
+ <div class="faq-cat">操作・設定</div>
+ <div class="faq-row">
+ <div class="faq-q">セッション名（イベント名）はあとから変更できますか？</div>
+ <div class="faq-a">できます。運営メニューの「改名」から変更でき、投稿データもそのまま引き継がれます。</div>
+ </div>
+ <div class="faq-row">
+ <div class="faq-q">参加者数に上限はありますか？</div>
+ <div class="faq-a">上限は設けていません。大規模イベントでの動作保証は現在対象外です。</div>
+ </div>
+ <div class="faq-row">
+ <div class="faq-q">投稿は匿名ですか？</div>
+ <div class="faq-a">基本は匿名運用です。表示名を入力して投稿する形式で利用できます。</div>
+ </div>
+ </div>
+
+ <div class="faq-item">
+ <div class="faq-cat">データ</div>
+ <div class="faq-row">
+ <div class="faq-q">投稿データはどのくらい保存されますか？</div>
+ <div class="faq-a">削除しない限り保持され、CSVでいつでもエクスポートできます。</div>
+ </div>
+ <div class="faq-row">
+ <div class="faq-q">他のイベントのデータと混ざりませんか？</div>
+ <div class="faq-a">混ざりません。セッション名ごとにデータを完全に分離しています。</div>
+ </div>
+ </div>
+
+ <div class="faq-item">
+ <div class="faq-cat">運営</div>
+ <div class="faq-row">
+ <div class="faq-q">スマホから運営操作はできますか？</div>
+ <div class="faq-a">運営メニューはPC表示専用です。スマホは参加者向け操作を想定しています。</div>
+ </div>
+ <div class="faq-row">
+ <div class="faq-q">運営者権限では何ができますか？</div>
+ <div class="faq-a">PCで運営者パスワードを保存すると、他人投稿削除・セッション管理・フォーム設定・ライブ投票編集・QR発行・CSV出力に対応できます。</div>
+ </div>
+ <div class="faq-row">
+ <div class="faq-q">ライブ投票は何回まで作成できますか？</div>
+ <div class="faq-a">1セッション最大3件まで作成できます。終了後は結果を残したまま「新規追加」で次の投票を開始できます。</div>
+ </div>
+ <div class="faq-row">
+ <div class="faq-q">複数人で運営管理できますか？</div>
+ <div class="faq-a">できます。同じURLを開けば複数人で同時に運営管理できます。</div>
+ </div>
+ </div>
+ </div>
+ </section>
+
+ <!-- updates -->
+ <section class="sec updates-box">
+ <div class="sec-label">Updates</div>
+ <div class="sec-title">最近の機能アップデート</div>
+ <div class="updates-list">
+ <div class="updates-item">
+ <div class="updates-main">
+ <div class="updates-text">● アンケート結果は票数の多い順に自動並び替え（入力側の項目順はそのまま維持）へ更新しました。</div>
+ <div class="updates-date">2026/03/30</div>
+ </div>
+ <a class="updates-post" target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=%E2%97%8F%20%E3%82%A2%E3%83%B3%E3%82%B1%E3%83%BC%E3%83%88%E7%B5%90%E6%9E%9C%E3%81%AF%E7%A5%A8%E6%95%B0%E3%81%AE%E5%A4%9A%E3%81%84%E9%A0%86%E3%81%AB%E8%87%AA%E5%8B%95%E4%B8%A6%E3%81%B3%E6%9B%BF%E3%81%88%EF%BC%88%E5%85%A5%E5%8A%9B%E5%81%B4%E3%81%AE%E9%A0%85%E7%9B%AE%E9%A0%86%E3%81%AF%E3%81%9D%E3%81%AE%E3%81%BE%E3%81%BE%E7%B6%AD%E6%8C%81%EF%BC%89%E3%81%B8%E6%9B%B4%E6%96%B0%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F%E3%80%82&url=https%3A%2F%2Fdrsp.cc%2Fchat%2Flp%2F">Xでポスト</a>
+ </div>
+ <div class="updates-item">
+ <div class="updates-main">
+ <div class="updates-text">● 投稿モーダルの送信導線を統一し、運営操作を簡素化しました。</div>
+ <div class="updates-date">2026/03/30</div>
+ </div>
+ <a class="updates-post" target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=%E2%97%8F%20%E6%8A%95%E7%A8%BF%E3%83%A2%E3%83%BC%E3%83%80%E3%83%AB%E3%81%AE%E9%80%81%E4%BF%A1%E5%B0%8E%E7%B7%9A%E3%82%92%E7%B5%B1%E4%B8%80%E3%81%97%E3%80%81%E9%81%8B%E5%96%B6%E6%93%8D%E4%BD%9C%E3%82%92%E7%B0%A1%E7%B4%A0%E5%8C%96%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F%E3%80%82&url=https%3A%2F%2Fdrsp.cc%2Fchat%2Flp%2F">Xでポスト</a>
+ </div>
+ <div class="updates-item">
+ <div class="updates-main">
+ <div class="updates-text">● ライブ投票の演出を強化し、運営提示の質問に対してリアルタイムで競り上がる棒グラフ表示を追加しました。</div>
+ <div class="updates-date">2026/03/29</div>
+ </div>
+ <a class="updates-post" target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=%E2%97%8F%20%E3%83%A9%E3%82%A4%E3%83%96%E6%8A%95%E7%A5%A8%E3%81%AE%E6%BC%94%E5%87%BA%E3%82%92%E5%BC%B7%E5%8C%96%E3%81%97%E3%80%81%E9%81%8B%E5%96%B6%E6%8F%90%E7%A4%BA%E3%81%AE%E8%B3%AA%E5%95%8F%E3%81%AB%E5%AF%BE%E3%81%97%E3%81%A6%E3%83%AA%E3%82%A2%E3%83%AB%E3%82%BF%E3%82%A4%E3%83%A0%E3%81%A7%E7%AB%B6%E3%82%8A%E4%B8%8A%E3%81%8C%E3%82%8B%E6%A3%92%E3%82%B0%E3%83%A9%E3%83%95%E8%A1%A8%E7%A4%BA%E3%82%92%E8%BF%BD%E5%8A%A0%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F%E3%80%82&url=https%3A%2F%2Fdrsp.cc%2Fchat%2Flp%2F">Xでポスト</a>
+ </div>
+ </div>
+ </section>
+
+
+ <!-- CTA -->
+ <section class="cta">
+ <h2>まずはデモで動きを確認</h2>
+ <p>データ追加、削除、修正など自由に行ってください。</p>
+ <div class="actions">
+ <a class="btn-primary" href="https://drsp.cc/chat/?s=webinar-demo&v=screen" target="_blank" rel="noopener noreferrer"><img class="btn-icon" src="../img/favicon.svg" alt="">デモを見る →</a>
+ </div>
+ </section>
+
+ <footer class="footer">
+ &copy; 2026 <a href="https://drsp.cc/" target="_blank" rel="noopener noreferrer">一般社団法人ディレクションサポート協会</a> / Chat.app
+ </footer>
+
+</div>
+<script>
+(function(){
+ const KEY='chatapp-lp-theme';
+ const body=document.body;
+ const toggle=document.getElementById('themeToggle');
+ const logo=document.getElementById('brandLogo');
+ function apply(theme){
+ body.setAttribute('data-theme', theme);
+ if(toggle) toggle.textContent = theme === 'light' ? '☀︎' : '☾';
+ if(logo) logo.src = theme === 'dark' ? '../img/logo-chatapp-dark.svg' : '../img/logo-chatapp-light.svg';
+ }
+ const saved=localStorage.getItem(KEY);
+ const initial = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+ apply(initial);
+ if(toggle){
+ toggle.addEventListener('click', function(){
+ const now=body.getAttribute('data-theme')==='light'?'dark':'light';
+ localStorage.setItem(KEY, now);
+ apply(now);
+ });
+ }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+name: chat-deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: chat-deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: PHP Syntax Check
+        run: php -l api.php
+
+      - name: Install lftp
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y lftp
+
+      - name: Deploy via FTP
+        env:
+          FTP_HOST: ${{ secrets.CHAT_FTP_HOST }}
+          FTP_USER: ${{ secrets.CHAT_FTP_USER }}
+          FTP_PASS: ${{ secrets.CHAT_FTP_PASS }}
+          FTP_BASE: ${{ secrets.CHAT_FTP_BASE }}
+        run: |
+          if [ -z "$FTP_HOST" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASS" ] || [ -z "$FTP_BASE" ]; then
+            echo "CHAT_FTP_HOST / CHAT_FTP_USER / CHAT_FTP_PASS / CHAT_FTP_BASE が未設定です" >&2
+            exit 1
+          fi
+
+          lftp -u "$FTP_USER","$FTP_PASS" "$FTP_HOST" -e "
+            set ftp:ssl-allow no;
+            set ssl:verify-certificate no;
+            mkdir -p $FTP_BASE;
+            mirror -R --verbose --only-newer \
+              --exclude-glob .git\\* \
+              --exclude-glob .github\\* \
+              --exclude-glob .DS_Store \
+              --exclude-glob AGENTS.md \
+              --exclude-glob CSS_RULES_V1.md \
+              ./ $FTP_BASE;
+            bye
+          "

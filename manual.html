@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>運営マニュアル</title>
+    <style>
+/* inlined from ./ui.css?v=20260328a */
+:root {
+  --radius-xs: 8px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  --font-xs: 12px;
+  --font-sm: 13px;
+  --font-md: 14px;
+  --font-lg: 16px;
+  --font-xl: 18px;
+  --font-2xl: 24px;
+
+  --shadow: 0 10px 26px rgba(10, 14, 20, 0.14);
+  --shadow-strong: 0 18px 46px rgba(10, 14, 20, 0.2);
+
+  --control-h: 34px;
+}
+
+.ui-card {
+  background: var(--surface, var(--dk2, #fff));
+  border: 1px solid var(--line, var(--bdr, rgba(0,0,0,0.15)));
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.ui-card:hover {
+  border-color: color-mix(in srgb, var(--brand, var(--grn, #c5ea1f)) 45%, var(--line, #c4c9cf));
+  box-shadow: var(--shadow-strong);
+}
+
+.ui-btn,
+button,
+.btn-primary,
+.btn-ghost,
+.toc a {
+  min-height: var(--control-h);
+}
+
+.ui-btn:focus-visible,
+button:focus-visible,
+.btn-primary:focus-visible,
+.btn-ghost:focus-visible,
+.toc a:focus-visible,
+.theme-toggle:focus-visible,
+.view-tab:focus-visible,
+.admin-summary:focus-visible {
+  outline: 2px solid var(--brand-dark, var(--grn2, #95b70b));
+  outline-offset: 2px;
+}
+
+.ui-btn[disabled],
+button[disabled],
+.btn-primary[aria-disabled="true"],
+.btn-ghost[aria-disabled="true"],
+.btn-primary:disabled,
+.btn-ghost:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+</style>
+  <meta name="theme-color" content="#0f1410">
+    <link rel="icon" type="image/svg+xml" href="./img/favicon.svg?v=20260327b">
+    <link rel="icon" type="image/png" sizes="32x32" href="./img/favicon-32x32.png?v=20260327b">
+  <link rel="shortcut icon" href="./img/favicon-32x32.png?v=20260327b">
+    <link rel="icon" href="./img/favicon.ico?v=20260327b">
+  <link rel="apple-touch-icon" sizes="180x180" href="./img/apple-touch-icon.png?v=20260327b">
+  <style>
+    :root {
+      --bg: #e7e8ea;
+      --bg-2: #d9dbde;
+      --surface: #f6f7f8;
+      --surface-2: #eef1f3;
+      --text: #0f1113;
+      --muted: #5b6168;
+      --line: #c4c9cf;
+      --brand: #c5ea1f;
+      --brand-dark: #95b70b;
+      --brand-soft: #edf8bc;
+      --shadow: 0 10px 26px rgba(10, 14, 20, 0.14);
+      --radius-sm: 10px;
+      --radius-md: 12px;
+      --radius-lg: 14px;
+      --font-xs: 12px;
+      --font-sm: 13px;
+      --font-md: 14px;
+      --font-lg: 16px;
+      --font-xl: 18px;
+      --font-2xl: 24px;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Hiragino Sans", "Avenir Next", "Noto Sans JP", "Yu Gothic", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1000px 340px at 50% -140px, rgba(197, 234, 31, 0.18) 0%, transparent 70%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+      line-height: 1.6;
+    }
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px 56px;
+    }
+    .hero, .sec {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      box-shadow: var(--shadow);
+    }
+    .hero { margin-bottom: 16px; }
+    .sec { margin-top: 14px; }
+    .manual-brand {
+      display: inline-flex;
+      align-items: center;
+      margin-bottom: 10px;
+      line-height: 1;
+    }
+    .manual-brand img {
+      display: block;
+      height: 30px;
+      width: auto;
+    }
+    .hero h1 {
+      margin: 0 0 6px;
+      font-size: var(--font-2xl);
+      line-height: 1.2;
+    }
+    .hero p { margin: 0; color: var(--muted); }
+    .toc {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .toc a {
+      display: block;
+      text-decoration: none;
+      color: var(--text);
+      background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: var(--font-md);
+      transition: background-color .15s ease, border-color .15s ease;
+    }
+    .toc a:hover {
+      background: var(--brand-soft);
+      border-color: rgba(149, 183, 11, 0.35);
+    }
+    .toc a:focus-visible {
+      outline: 2px solid var(--brand-dark);
+      outline-offset: 2px;
+    }
+    h2 {
+      margin: 0 0 10px;
+      font-size: var(--font-xl);
+      border-left: 5px solid var(--brand-dark);
+      padding-left: 10px;
+    }
+    h3 { margin: 16px 0 8px; font-size: var(--font-lg); }
+    ul, ol { margin: 8px 0 0 20px; }
+    code {
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: var(--radius-sm);
+      padding: 2px 6px;
+      font-size: var(--font-sm);
+    }
+    .note {
+      background: #f7fce3;
+      border: 1px solid #d9ec8f;
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      margin-top: 10px;
+      font-size: var(--font-md);
+    }
+    .warn {
+      background: #fff7ed;
+      border: 1px solid #fdba74;
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      margin-top: 10px;
+      font-size: var(--font-md);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: var(--font-md);
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%); }
+    .template {
+      margin-top: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+      font-size: var(--font-md);
+      white-space: pre-wrap;
+    }
+    .footer {
+      color: var(--muted);
+      font-size: var(--font-xs);
+      margin-top: 18px;
+      text-align: center;
+    }
+    .recent-updates {
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+    }
+    .recent-updates h3 {
+      margin: 0 0 8px;
+      font-size: var(--font-lg);
+    }
+    .recent-updates-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 6px;
+    }
+    .recent-updates-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
+      padding: 8px 0;
+      border-top: 1px solid var(--line);
+    }
+    .recent-updates-item:first-child {
+      border-top: none;
+      padding-top: 0;
+    }
+    .recent-updates-main {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+    }
+    .recent-updates-head {
+      font-size: var(--font-md);
+      color: var(--text);
+      line-height: 1.55;
+      font-weight: 600;
+    }
+    .recent-updates-date {
+      font-size: var(--font-xs);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .recent-updates-post {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-pill);
+      padding: 4px 10px;
+      min-height: 28px;
+      font-size: var(--font-xs);
+      text-decoration: none;
+      color: var(--muted);
+      background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+      white-space: nowrap;
+    }
+    .recent-updates-post:hover {
+      color: var(--text);
+      border-color: rgba(149, 183, 11, 0.35);
+      background: var(--brand-soft);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="manual-brand"><img src="./img/logo-chatapp-light.svg" alt="Chat.app"></div>
+      <h1>運営マニュアル</h1>
+      <p>運営者向けの運用ガイドです。投稿・表示・アンケート・ライブ投票を、当日の進行順でまとめています。</p>
+      <div class="note"><strong>役割分担：</strong><strong>PC＝運営</strong>（運営メニュー・進行管理） / <strong>スマホ＝参加者</strong>（投稿・閲覧・アンケート・投票）</div>
+      <div class="note"><strong>最短3ステップ：</strong>1) セッション選択 2) URL/QR配布 3) 表示で進行管理</div>
+      <div class="recent-updates">
+        <h3>最近のアップデート</h3>
+        <ul class="recent-updates-list">
+          <li class="recent-updates-item">
+            <div class="recent-updates-main">
+              <span class="recent-updates-head">● アンケート結果は票数の多い順に自動並び替え（入力側の項目順はそのまま維持）へ更新しました。</span>
+              <span class="recent-updates-date">2026/03/30</span>
+            </div>
+            <a class="recent-updates-post" target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=%E2%97%8F%20%E3%82%A2%E3%83%B3%E3%82%B1%E3%83%BC%E3%83%88%E7%B5%90%E6%9E%9C%E3%81%AF%E7%A5%A8%E6%95%B0%E3%81%AE%E5%A4%9A%E3%81%84%E9%A0%86%E3%81%AB%E8%87%AA%E5%8B%95%E4%B8%A6%E3%81%B3%E6%9B%BF%E3%81%88%EF%BC%88%E5%85%A5%E5%8A%9B%E5%81%B4%E3%81%AE%E9%A0%85%E7%9B%AE%E9%A0%86%E3%81%AF%E3%81%9D%E3%81%AE%E3%81%BE%E3%81%BE%E7%B6%AD%E6%8C%81%EF%BC%89%E3%81%B8%E6%9B%B4%E6%96%B0%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F%E3%80%82&url=https%3A%2F%2Fdrsp.cc%2Fchat%2Fmanual.html">Xでポスト</a>
+          </li>
+          <li class="recent-updates-item">
+            <div class="recent-updates-main">
+              <span class="recent-updates-head">● 投稿モーダルの送信導線を統一し、運営操作を簡素化しました。</span>
+              <span class="recent-updates-date">2026/03/30</span>
+            </div>
+            <a class="recent-updates-post" target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=%E2%97%8F%20%E6%8A%95%E7%A8%BF%E3%83%A2%E3%83%BC%E3%83%80%E3%83%AB%E3%81%AE%E9%80%81%E4%BF%A1%E5%B0%8E%E7%B7%9A%E3%82%92%E7%B5%B1%E4%B8%80%E3%81%97%E3%80%81%E9%81%8B%E5%96%B6%E6%93%8D%E4%BD%9C%E3%82%92%E7%B0%A1%E7%B4%A0%E5%8C%96%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F%E3%80%82&url=https%3A%2F%2Fdrsp.cc%2Fchat%2Fmanual.html">Xでポスト</a>
+          </li>
+          <li class="recent-updates-item">
+            <div class="recent-updates-main">
+              <span class="recent-updates-head">● ライブ投票の演出を強化し、運営提示の質問に対してリアルタイムで競り上がる棒グラフ表示を追加しました。</span>
+              <span class="recent-updates-date">2026/03/29</span>
+            </div>
+            <a class="recent-updates-post" target="_blank" rel="noopener noreferrer" href="https://x.com/intent/tweet?text=%E2%97%8F%20%E3%83%A9%E3%82%A4%E3%83%96%E6%8A%95%E7%A5%A8%E3%81%AE%E6%BC%94%E5%87%BA%E3%82%92%E5%BC%B7%E5%8C%96%E3%81%97%E3%80%81%E9%81%8B%E5%96%B6%E6%8F%90%E7%A4%BA%E3%81%AE%E8%B3%AA%E5%95%8F%E3%81%AB%E5%AF%BE%E3%81%97%E3%81%A6%E3%83%AA%E3%82%A2%E3%83%AB%E3%82%BF%E3%82%A4%E3%83%A0%E3%81%A7%E7%AB%B6%E3%82%8A%E4%B8%8A%E3%81%8C%E3%82%8B%E6%A3%92%E3%82%B0%E3%83%A9%E3%83%95%E8%A1%A8%E7%A4%BA%E3%82%92%E8%BF%BD%E5%8A%A0%E3%81%97%E3%81%BE%E3%81%97%E3%81%9F%E3%80%82&url=https%3A%2F%2Fdrsp.cc%2Fchat%2Fmanual.html">Xでポスト</a>
+          </li>
+        </ul>
+      </div>
+      <nav class="toc" role="navigation" aria-label="目次">
+        <a href="#overview">1. 運営者の役割</a>
+        <a href="#setup">2. 開始前準備</a>
+        <a href="#live">3. 当日の進行フロー</a>
+        <a href="#announce">4. 参加者への案内テンプレ</a>
+        <a href="#menu">5. 運営メニュー</a>
+        <a href="#post">6. 投稿運用</a>
+        <a href="#poll">7. アンケート運用</a>
+        <a href="#vote">8. ライブ投票運用</a>
+        <a href="#trouble">9. トラブル対応</a>
+      </nav>
+    </section>
+
+    <section id="overview" class="sec">
+      <h2>1. 運営者の役割</h2>
+      <ul>
+        <li>投稿を集める（投稿）</li>
+        <li>未読処理・ピン留めで進行する（表示）</li>
+        <li>リアルタイム回答を回収する（アンケート）</li>
+        <li>選択式で会場を盛り上げる（ライブ投票）</li>
+      </ul>
+      <div class="note"><strong>補足：</strong>セッションはイベント単位の部屋です。投稿・返信・アンケート結果はセッションごとに分離されます。</div>
+    </section>
+
+    <section id="setup" class="sec">
+      <h2>2. 開始前準備</h2>
+      <ol>
+        <li><code>https://drsp.cc/chat/</code> をPCで開く</li>
+        <li>セッション名を確認（必要なら <code>新規</code> / <code>改名</code>）</li>
+        <li><code>QR</code> で参加URLを取得（URLコピー/QR保存）</li>
+        <li>Zoom/Teams/Slackなど参加者導線へ配布</li>
+      </ol>
+      <div class="warn"><strong>運営者パスワード：</strong>運営操作前に、運営メニューでパスワードを保存してください（サーバー側は <code>CHATAPP_ADMIN_KEY</code> を設定）。</div>
+    </section>
+
+    <section id="live" class="sec">
+      <h2>3. 当日の進行フロー（運営視点）</h2>
+
+      <h3>開始前</h3>
+      <ul>
+        <li>セッション名と参加URLを確認して共有</li>
+        <li>投稿・返信・❤️・アンケート入力を1回ずつ確認</li>
+      </ul>
+
+      <h3>開始直後</h3>
+      <ul>
+        <li>「右下の＋から質問を投稿できます」と案内</li>
+        <li>投稿が少なければ運営が1件投稿して流れを作る</li>
+      </ul>
+
+      <h3>進行中</h3>
+      <ul>
+        <li>表示で未読中心に処理し、必要な質問をピン留め</li>
+        <li>アンケートとライブ投票の実施タイミングを案内</li>
+      </ul>
+
+      <h3>終了前</h3>
+      <ul>
+        <li>重要質問の取りこぼしを回収</li>
+        <li>アンケート最終回答と次回テーマ入力を促す</li>
+      </ul>
+    </section>
+
+    <section id="announce" class="sec">
+      <h2>4. 参加者への案内テンプレ（運営用）</h2>
+      <h3>投稿の案内</h3>
+      <div class="template">このイベントの質問受付はChat.appで行います。
+右下の「＋」から、いつでも質問を投稿してください。</div>
+
+      <h3>リアクションの案内</h3>
+      <div class="template">いい質問だと思ったら ❤️ を押してください。
+票が多い順に優先して取り上げます。</div>
+
+      <h3>アンケートの案内</h3>
+      <div class="template">アンケート入力をお願いします。
+ハート評価は1人5回まで押せます。次回テーマもぜひ入力してください。</div>
+    </section>
+
+    <section id="menu" class="sec">
+      <h2>5. 運営メニュー（右上「運営」）</h2>
+      <div class="warn"><strong>運営者パスワード必須：</strong>運営メニューの操作には運営者パスワードの保存が必要です。</div>
+      <table>
+        <thead>
+          <tr><th>ボタン</th><th>運営者向け説明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>新規</td><td>セッションを追加</td></tr>
+          <tr><td>改名</td><td>セッション名を変更（データ引き継ぎ）</td></tr>
+          <tr><td>QR</td><td>参加URLのコピー/QR保存</td></tr>
+          <tr><td>フォーム</td><td>外部フォームURLを設定</td></tr>
+          <tr><td>ライブ投票</td><td>編集・終了・新規追加（1セッション最大3件）</td></tr>
+          <tr><td>CSV</td><td>投稿・返信データを出力</td></tr>
+          <tr><td>削除</td><td>セッション候補を一覧から削除（投稿データは残る）</td></tr>
+          <tr><td>マニュアル</td><td>運営マニュアルを開く</td></tr>
+        </tbody>
+      </table>
+      <h3>運営者権限（運営者パスワード保存時）の機能一覧</h3>
+      <table>
+        <thead>
+          <tr><th>機能</th><th>運営者（通常）</th><th>運営者（権限あり）</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>自分の投稿/返信を削除</td><td>◯</td><td>◯</td></tr>
+          <tr><td>他人の投稿/返信を削除</td><td>×</td><td>◯（PCのみ）</td></tr>
+          <tr><td>セッション操作（新規/改名/削除）</td><td>◯</td><td>◯</td></tr>
+          <tr><td>フォームURL設定</td><td>◯</td><td>◯</td></tr>
+          <tr><td>QR発行（URLコピー/QR保存）</td><td>◯</td><td>◯</td></tr>
+          <tr><td>CSV出力</td><td>◯</td><td>◯</td></tr>
+          <tr><td>ライブ投票の編集/終了/新規追加</td><td>◯</td><td>◯</td></tr>
+        </tbody>
+      </table>
+      <div class="note">他人投稿/返信の削除だけが、運営者権限で有効になる差分です。</div>
+      <div class="note">CSV列: <code>type, session, created_at, display_name, text, votes, status, pinned</code></div>
+    </section>
+
+    <section id="post" class="sec">
+      <h2>6. 投稿運用（アプリ内「投稿」「表示」タブ）</h2>
+      <div class="note"><strong>使い方：</strong>投稿で集める → 表示で未読処理・ピン留め、の順で運用すると進行が安定します。</div>
+      <ul>
+        <li>投稿タブで質問を収集、表示タブで運営が進行管理</li>
+        <li>表示は未読表示を基本に、必要時のみ全件表示へ切替</li>
+        <li>重要質問はピン留めで上部固定</li>
+        <li>返信を活用して追加情報を回収</li>
+        <li>削除は運営PCで実施（権限ありなら他人投稿も可）</li>
+      </ul>
+    </section>
+
+    <section id="poll" class="sec">
+      <h2>7. アンケート運用（アプリ内「アンケート」タブ）</h2>
+      <div class="note"><strong>使い方：</strong>回答タイミングを口頭で案内しながらリアルタイム表示すると、回答率が上がりやすくなります。</div>
+      <ul>
+        <li>入力で満足度/理解度の❤️評価と次回テーマを収集</li>
+        <li>フォーム設定時は「運営からのお知らせ」枠を表示</li>
+        <li>お知らせ本文は全文リンクで外部フォームへ遷移</li>
+        <li>結果は会場全体の反応を即時共有</li>
+        <li>評価項目名はアンケートタブ下部の「評価項目設定」で変更可能</li>
+      </ul>
+      <div class="note">アプリの更新内容は、運営マニュアルとLPにも順次反映していきます。</div>
+    </section>
+
+    <section id="vote" class="sec">
+      <h2>8. ライブ投票運用（アプリ内「ライブ投票」タブ）</h2>
+      <div class="note"><strong>使い方：</strong>運営が質問を提示し、タイマーで締切を作って会場の意思を可視化します。</div>
+      <ul>
+        <li>質問と選択肢を提示して会場投票を実施</li>
+        <li>1セッション最大3件まで作成可能</li>
+        <li>終了後も結果は表示されたまま（編集/新規追加可）</li>
+        <li>タイマー終了時は投票受付のみ停止</li>
+      </ul>
+    </section>
+
+    <section id="trouble" class="sec">
+      <h2>9. トラブル対応（運営向け）</h2>
+      <h3>削除できないとき</h3>
+      <ul>
+        <li>パスワード未保存時は、自分の投稿/返信のみ削除可能</li>
+        <li>パスワード保存後は、運営PCで他人投稿/返信も削除可能</li>
+        <li>スマホで削除できない場合は運営PCから対応</li>
+        <li>再読み込み後に再実行</li>
+      </ul>
+
+      <h3>反映が遅い/古いとき</h3>
+      <ul>
+        <li>まずブラウザを再読み込み（F5 / ⌘R）</li>
+        <li>セッションを切り替えて戻す</li>
+        <li>同じセッション名を見ているか確認</li>
+      </ul>
+
+      <h3>ライブ投票の新規追加が押せないとき</h3>
+      <ul>
+        <li>同一セッションで3件上限に達していないか確認</li>
+      </ul>
+
+      <h3>参加URLを再配布したいとき</h3>
+      <ul>
+        <li>運営メニューの <code>QR</code> を押してURLコピー、またはQR保存で再配布</li>
+      </ul>
+      <div class="warn">本番前に、投稿・返信・❤️・アンケート入力・投票・CSV出力を最低1回ずつ動作確認してください。</div>
+    </section>
+
+    <p class="footer">© 2026 一般社団法人ディレクションサポート協会 / Chat.app</p>
+  </div>
+</body>
+</html>

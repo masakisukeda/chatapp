@@ -1,0 +1,166 @@
+/* Shared LP styles for chat/dic/mng */
+:root {
+  --lp-font-xs: var(--font-xs, var(--fs-s, 12px));
+  --lp-font-sm: var(--font-sm, var(--fs-s, 12px));
+  --lp-font-md: var(--font-md, var(--fs-m, 14px));
+  --lp-radius-pill: var(--radius-pill, 999px);
+  --lp-text: var(--tx, #111);
+  --lp-text-soft: var(--tx2, #666);
+  --lp-border-strong: var(--bdr2, rgba(0, 0, 0, 0.22));
+  --lp-surface-1: var(--dk3, #1b1f24);
+  --lp-surface-2: var(--dk2, #12161b);
+  --lp-accent: var(--grn, var(--ac, #4ea1ff));
+}
+
+.topbar-logo img {
+  display: block;
+  height: 24px;
+  width: auto;
+}
+
+.topbar-session {
+  font-size: var(--lp-font-sm);
+}
+
+.topbar-session-name {
+  font-weight: 700;
+}
+
+.hero-eyebrow,
+.eyebrow {
+  padding: 5px 14px;
+  margin-bottom: 24px;
+  font-size: var(--lp-font-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hero-eyebrow-meta,
+.eyebrow-meta {
+  font-size: var(--lp-font-xs);
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: var(--lp-font-md);
+  border-radius: var(--lp-radius-pill);
+  padding: 14px 30px;
+  min-height: 42px;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: var(--lp-font-sm);
+  font-weight: 700;
+  border-radius: var(--lp-radius-pill);
+  padding: 13px 24px;
+  min-height: 42px;
+  border: 1px solid var(--lp-border-strong);
+  background: linear-gradient(180deg, var(--lp-surface-1), var(--lp-surface-2));
+}
+
+body[data-theme="light"] .btn-ghost {
+  color: var(--lp-text);
+  border-color: var(--lp-border-strong);
+  background: linear-gradient(180deg, var(--lp-surface-2), var(--lp-surface-1));
+}
+
+body[data-theme="light"] .btn-ghost:hover {
+  color: var(--lp-text);
+}
+
+body[data-theme="light"] .updates-post {
+  color: var(--lp-text);
+  border-color: var(--lp-border-strong);
+  background: linear-gradient(180deg, var(--lp-surface-2), var(--lp-surface-1));
+}
+
+body[data-theme="light"] .cta-manual {
+  color: var(--lp-text-soft);
+}
+
+body[data-theme="light"] .cta-manual a {
+  color: var(--lp-text);
+  border-bottom-color: var(--lp-border-strong);
+}
+
+.cta h2 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.18;
+  position: relative;
+}
+
+.cta p {
+  margin-top: 14px;
+  font-size: var(--lp-font-md);
+  color: var(--lp-text-soft);
+  position: relative;
+}
+
+.topbar-session-name {
+  border-right: 1px solid color-mix(in srgb, var(--lp-accent) 75%, transparent);
+  animation: eventTyping 6.4s steps(24, end) infinite, caretBlink 0.8s step-end infinite;
+}
+
+@media (max-width: 760px) {
+  .topbar-session-name {
+    border-right: none;
+    animation: none;
+  }
+
+  .hero-eyebrow,
+  .eyebrow {
+    padding: 6px 10px;
+    gap: 6px;
+    flex-wrap: nowrap;
+    margin-bottom: 14px;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .hero-eyebrow-main,
+  .eyebrow-main {
+    flex: 0 0 auto;
+    max-width: none;
+    font-size: var(--lp-font-xs);
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .hero-eyebrow-meta,
+  .eyebrow-meta {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 6px;
+    padding-left: 6px;
+    border-left: 1px solid var(--lp-border-strong);
+    font-size: var(--lp-font-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+  }
+
+  .hero-eyebrow-meta-marquee {
+    display: inline-block;
+    white-space: nowrap;
+    padding-left: 100%;
+    animation: heroEyebrowMarquee 12s linear infinite;
+  }
+}

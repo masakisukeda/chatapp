@@ -1,0 +1,21 @@
+# Chat.app
+
+Chat.app is a web app for live seminar and webinar facilitation.
+It supports real-time Q&A, reactions, polls, and post-event CSV export.
+
+## Primary page
+- https://drsp.cc/chat/lp/
+
+## Product page
+- https://drsp.cc/chat/
+
+## Core capabilities
+- Real-time question posting and moderation
+- Audience reactions and simple live polls
+- Session-based data separation
+- CSV export for report creation
+
+## Intended users
+- Seminar and webinar organizers
+- Community/event moderators
+- Small teams that need lightweight event interaction tools

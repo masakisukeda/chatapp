@@ -1,0 +1,45 @@
+# AGENTS.md (Chat.app)
+
+このフォルダを触る AI / 自動化ツール向けの「最初に読む」メモです。
+
+## 0. 共通ルール（最優先）
+- 共通指示書（最新版URL）: `https://drsp.cc/app/AGENTS.md`
+- ローカル編集元: `/Users/masakisukeda/Library/CloudStorage/GoogleDrive-masaki.sukeda@gmail.com/マイドライブ/Playground/AGENTS.md`
+- スコープは `/app` `/chat` `/dic` `/mng` のみ。無関係フォルダの編集・デプロイは禁止。
+- デプロイはFTP経由。`/chat` 以外へアップロードしないこと。
+
+## 1. 対象
+- 公開URL: `https://drsp.cc/chat/`
+- 主要実装:
+  - `index.html`（フロント本体）
+  - `manual.html`（運用マニュアル）
+  - `api.php`（投稿/投票などAPI）
+  - `data/chatapp.sqlite`（データ）
+
+## 2. ローカル起動
+```bash
+cd /Users/masakisukeda/Library/CloudStorage/GoogleDrive-masaki.sukeda@gmail.com/マイドライブ/DiSA/プロジェクト/チャットアプリ
+./start-local.sh
+# http://127.0.0.1:8000
+```
+
+## 3. 作業ルール
+- 変更は最小差分。
+- 既存UIのトーン・文言・導線を維持する。
+- モーダルやフォーム挙動は、既存仕様を崩さない（勝手に閉じる条件を増やさない）。
+- `api.php` は副作用が大きいので、修正時は入力/保存/読み出し経路を必ず確認する。
+- `data/admin_key.txt` など認証系ファイルを不用意に編集しない。
+
+## 4. 反映前チェック
+- 画面確認: `index.html` / `manual.html`
+- LP修正時: `./lp/check-lp-regression.sh`
+- API変更時: 主要操作（投稿・編集・削除・投票）を最低1周確認
+- PHP構文確認例:
+```bash
+php -l api.php
+```
+
+## 5. NG
+- 無関係ファイルの一括整形。
+- DBファイルの直接破壊。
+- 本番反映手順が未確認のまま「反映済み」と報告。

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="230" height="44" viewBox="0 0 230 44" role="img" aria-labelledby="title desc">
+  <title id="title">Chat.app logo</title>
+  <desc id="desc">Chat.app wordmark with neon chat icon</desc>
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#d7f73b"/>
+      <stop offset="100%" stop-color="#a8cb17"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="40" height="40" rx="13" fill="#161b20"/>
+  <rect x="2" y="2" width="40" height="40" rx="13" fill="none" stroke="#2d3640" stroke-width="1.2"/>
+  <path d="M12 14h20a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4h-8l-5.8 4.6a.8.8 0 0 1-1.2-.64V30h-5a4 4 0 0 1-4-4v-8a4 4 0 0 1 4-4Z" fill="url(#g)"/>
+  <circle cx="17.5" cy="22" r="1.6" fill="#0f1113"/>
+  <circle cx="22.5" cy="22" r="1.6" fill="#0f1113"/>
+  <circle cx="27.5" cy="22" r="1.6" fill="#0f1113"/>
+  <text x="54" y="29" font-size="24" font-family="'Avenir Next','Noto Sans JP',sans-serif" font-weight="700" fill="#e9eff6" letter-spacing=".2">Chat.app</text>
+</svg>
