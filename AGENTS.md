@@ -6,7 +6,7 @@
 - 共通指示書（最新版URL）: `https://drsp.cc/app/AGENTS.md`
 - ローカル編集元: `/Users/masakisukeda/Library/CloudStorage/GoogleDrive-masaki.sukeda@gmail.com/マイドライブ/Playground/AGENTS.md`
 - スコープは `/app` `/chat` `/dic` `/mng` のみ。無関係フォルダの編集・デプロイは禁止。
-- デプロイはFTP経由。`/chat` 以外へアップロードしないこと。
+- 通常デプロイは `main` へ push -> GitHub Actions で実施（直接FTPアップロードは禁止）。
 
 ## 1. 対象
 - 公開URL: `https://drsp.cc/chat/`

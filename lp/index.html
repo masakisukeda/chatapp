@@ -94,8 +94,23 @@
 .updates-post{display:inline-flex;align-items:center;justify-content:center;min-height:30px;padding:6px 12px;border-radius:999px;border:1px solid var(--bdr2);background:linear-gradient(180deg,var(--dk3),var(--dk2));font-size:var(--fs-s);font-weight:700;color:var(--tx2);white-space:nowrap}
 .updates-post:hover{color:var(--tx);border-color:var(--ac2);background:var(--ac4)}
 @media(max-width:760px){.updates-item{grid-template-columns:1fr}.updates-post{justify-self:flex-end}}
+.theme-toggle{
+  font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol",sans-serif;
+  font-size:18px;
+  font-weight:700;
+  line-height:1;
+  color:var(--tx);
+  text-shadow:0 0 0 currentColor;
+}
+@media(max-width:760px){
+  .theme-toggle{
+    width:34px;
+    height:34px;
+    font-size:19px;
+  }
+}
 </style>
-<link rel="stylesheet" href="/app/lp-common.css?v=20260330h">
+<link rel="stylesheet" href="/app/lp-common.css?v=20260403a">
 </head>
 <body>
 <div class="w">
@@ -285,7 +300,7 @@
   const logo=document.getElementById('brandLogo');
   const saved=localStorage.getItem(KEY);
   const init=saved || (window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
-  function apply(theme){document.body.setAttribute('data-theme',theme);if(btn)btn.textContent=theme==='light'?'☀︎':'☾';if(logo)logo.src=theme==='dark'?'../img/logo-chatapp-dark.svg':'../img/logo-chatapp-light.svg';}
+  function apply(theme){document.body.setAttribute('data-theme',theme);if(btn)btn.textContent=theme==='light'?'☀️':'🌙';if(logo)logo.src=theme==='dark'?'../img/logo-chatapp-dark.svg':'../img/logo-chatapp-light.svg';}
   apply(init);
   if(btn){btn.addEventListener('click',()=>{const next=document.body.getAttribute('data-theme')==='light'?'dark':'light';localStorage.setItem(KEY,next);apply(next);});}
 })();
