@@ -51,6 +51,34 @@ bash scripts/check-deploy-chat.sh
 - `getPoll` の戻り値は `pollList` を含むこと（導線修正の回帰チェック）。
 - GitHub API監視で `403` が出る場合は未認証レート制限を疑う（`gh` または認証トークン利用）。
 
+## 4.2 デプロイ確認（必須）
+- `push` 後、必ず GitHub Actions のステータスを確認すること。
+- デプロイ確認コマンド:
+```bash
+# Actions完了を確認（例）
+gh run list --branch main --limit 5
+gh run watch <RUN_ID> --exit-status
+
+# 公開反映確認
+curl -I https://drsp.cc/chat/app.js
+# -> HTTP 200 かつレスポンスヘッダ（Last-Modified など）に更新が反映されていること
+```
+- 上記確認前に「デプロイ完了」と報告しないこと。
+
+## 4.3 ロールバック手順
+- デプロイ後に不具合が発生した場合:
+```bash
+# 直前のコミットを打ち消す
+git revert HEAD --no-edit
+git push origin main
+# -> GitHub Actions が自動で旧バージョンをデプロイ
+
+# 複数コミット戻す場合
+git revert HEAD~2..HEAD --no-edit
+git push origin main
+```
+- `revert` 後も必ず `curl -I` で HTTP `200` を確認すること。
+
 ## 5. NG
 - 無関係ファイルの一括整形。
 - DBファイルの直接破壊。
