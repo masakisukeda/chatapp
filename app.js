@@ -1151,6 +1151,63 @@ function getAdminKeyCached() {
         }
       }
 
+      async function submitReplyQuick(questionId) {
+        const raw = window.prompt('コメントを入力してください');
+        if (raw == null) return;
+        const replyText = String(raw || '').trim();
+        if (!replyText) {
+          alert('コメントを入力してください');
+          return;
+        }
+        const displayName = getDisplayName();
+        const tempId = `temp-r-${Date.now()}`;
+
+        const before = currentQuestions.slice();
+        const optimisticReply = {
+          id: tempId,
+          createdAt: new Date().toISOString(),
+          displayName,
+          replyText,
+          votes: 0,
+          isMine: true,
+        };
+        pendingReplies.set(tempId, { ...optimisticReply, questionId });
+        currentQuestions = currentQuestions.map((q) => {
+          if (q.id !== questionId) return q;
+          const replies = Array.isArray(q.replies) ? q.replies.slice() : [];
+          replies.push(optimisticReply);
+          return { ...q, replies };
+        });
+        renderList(currentQuestions);
+
+        try {
+          const res = await api('submitReply', {
+            questionId,
+            sessionCode: SESSION,
+            displayName,
+            replyText,
+            authorToken,
+          });
+          currentQuestions = currentQuestions.map((q) => {
+            if (q.id !== questionId) return q;
+            const replies = (q.replies || []).map((r) => (r.id === tempId ? { ...r, id: res.id } : r));
+            return { ...q, replies };
+          });
+          const p = pendingReplies.get(tempId);
+          if (p) {
+            pendingReplies.delete(tempId);
+            pendingReplies.set(res.id, { ...p, id: res.id });
+          }
+          renderList(currentQuestions);
+          triggerFastSync();
+        } catch (e) {
+          pendingReplies.delete(tempId);
+          currentQuestions = before;
+          renderList(currentQuestions);
+          alert(e.message || '返信失敗');
+        }
+      }
+
       async function loadPoll() {
         const prevKey = lastPollRenderKey;
         try {
@@ -1934,6 +1991,85 @@ function getAdminKeyCached() {
           </article>`;
       }
 
+      function renderAudienceDesktopRows(questions) {
+        const canForceDelete = !!getAdminKeyCached();
+        const entries = [];
+        const toTime = (value) => {
+          const ts = Date.parse(String(value || ''));
+          return Number.isFinite(ts) ? ts : 0;
+        };
+        const summarize = (value) => {
+          const text = String(value || '').replace(/\s+/g, ' ').trim();
+          if (!text) return '';
+          return text.length > 36 ? `${text.slice(0, 36)}…` : text;
+        };
+
+        questions.forEach((q) => {
+          const statusChip = q.status === 'ANSWERED'
+            ? '<span class="status-chip answered">回答済み</span>'
+            : '';
+          const pinChip = q.pinned ? '<span class="status-chip">📍</span>' : '';
+          const canDeleteQuestion = canForceDelete || !!q.isMine;
+          const questionDeleteAction = canDeleteQuestion
+            ? `<button class="ghost feed-action-btn" type="button" onclick="deleteMyQuestion('${esc(q.id)}')">削除</button>`
+            : '';
+          entries.push({
+            type: 'q',
+            ts: toTime(q.createdAt),
+            html: `
+              <article class="card feed-row feed-row-question">
+                <div class="feed-main">
+                  <div class="feed-title-line">
+                    <span class="feed-kind">投稿</span>
+                    <span class="feed-text">${linkifyText(q.questionText)}</span>
+                  </div>
+                  <div class="feed-meta-line">${pinChip}${statusChip}${esc(q.displayName)} ・ ${new Date(q.createdAt).toLocaleString()}</div>
+                </div>
+                <div class="feed-actions">
+                  <button class="ghost feed-action-btn" type="button" onclick="submitReplyQuick('${esc(q.id)}')">返信</button>
+                  <button class="ghost like-count-btn vote-action-btn feed-action-btn" type="button" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes || 0}</button>
+                  ${questionDeleteAction}
+                </div>
+              </article>`,
+          });
+
+          const replies = Array.isArray(q.replies) ? q.replies : [];
+          replies.forEach((r) => {
+            const canDeleteReply = canForceDelete || !!r.isMine;
+            const replyDeleteAction = canDeleteReply
+              ? `<button class="ghost feed-action-btn" type="button" onclick="deleteMyReply('${esc(q.id)}','${esc(r.id)}')">削除</button>`
+              : '';
+            entries.push({
+              type: 'r',
+              ts: toTime(r.createdAt),
+              html: `
+                <article class="card feed-row feed-row-reply">
+                  <div class="feed-main">
+                    <div class="feed-title-line">
+                      <span class="feed-kind">コメント</span>
+                      <span class="feed-text">${linkifyText(r.replyText)}</span>
+                    </div>
+                    <div class="feed-meta-line">${esc(r.displayName)} ・ ${new Date(r.createdAt).toLocaleString()}</div>
+                    <div class="feed-parent-line">↳ ${esc(summarize(q.questionText))}</div>
+                  </div>
+                  <div class="feed-actions">
+                    <button class="ghost like-count-btn vote-action-btn feed-action-btn" type="button" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${r.votes || 0}</button>
+                    ${replyDeleteAction}
+                  </div>
+                </article>`,
+            });
+          });
+        });
+
+        entries.sort((a, b) => {
+          if (b.ts !== a.ts) return b.ts - a.ts;
+          if (a.type !== b.type) return a.type === 'r' ? -1 : 1;
+          return 0;
+        });
+
+        return entries.map((entry) => entry.html).join('');
+      }
+
       function renderScreenItem(q) {
         const statusChip = q.status === 'ANSWERED'
           ? '<span class="status-chip answered">回答済み</span>'
@@ -2009,7 +2145,13 @@ function getAdminKeyCached() {
           return;
         }
 
-        root.innerHTML = (VIEW === 'screen' ? questions.map(renderScreenItem) : questions.map(renderAudienceItem)).join('');
+        if (VIEW === 'screen') {
+          root.innerHTML = questions.map(renderScreenItem).join('');
+        } else if (VIEW === 'audience' && !isMobileLayout()) {
+          root.innerHTML = `<div class="audience-flat-list">${renderAudienceDesktopRows(questions)}</div>`;
+        } else {
+          root.innerHTML = questions.map(renderAudienceItem).join('');
+        }
         bindSwipeDelete();
       }
 

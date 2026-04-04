@@ -65,9 +65,74 @@
         .poll-bar-wrap {
           height: 14px;
         }
-        /* 投稿(PC): 2カラム維持（左:本文 右:♡） */
+        /* 投稿(PC): 1カラムのフラットリスト */
         .q-item-audience-desktop {
-          grid-template-columns: 1fr auto;
+          grid-template-columns: 1fr;
+        }
+        .audience-flat-list {
+          display: grid;
+          gap: 8px;
+        }
+        .audience-flat-list .feed-row {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 12px;
+          box-shadow: none;
+        }
+        .audience-flat-list .feed-main {
+          min-width: 0;
+          display: grid;
+          gap: 3px;
+        }
+        .audience-flat-list .feed-title-line {
+          min-width: 0;
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+        }
+        .audience-flat-list .feed-kind {
+          flex: 0 0 auto;
+          font-size: var(--font-xs);
+          font-weight: 700;
+          color: var(--muted);
+        }
+        .audience-flat-list .feed-text {
+          min-width: 0;
+          font-size: var(--font-sm);
+          line-height: 1.45;
+          white-space: normal;
+          word-break: break-word;
+        }
+        .audience-flat-list .feed-meta-line,
+        .audience-flat-list .feed-parent-line {
+          font-size: var(--font-xs);
+          line-height: 1.4;
+          color: var(--muted);
+        }
+        .audience-flat-list .feed-parent-line {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .audience-flat-list .feed-actions {
+          display: inline-flex;
+          align-items: center;
+          justify-content: flex-end;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+        .audience-flat-list .feed-action-btn {
+          min-height: 28px;
+          padding: 5px 10px;
+          font-size: var(--font-xs);
+        }
+        .audience-flat-list .feed-row-question .feed-kind {
+          color: #4f6410;
+        }
+        .audience-flat-list .feed-row-reply .feed-kind {
+          color: #3f5d7a;
         }
       }
       @media (min-width: 1024px) {
