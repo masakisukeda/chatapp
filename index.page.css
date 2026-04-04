@@ -65,6 +65,10 @@
         .poll-bar-wrap {
           height: 14px;
         }
+        /* 投稿(PC): 投稿コメントと同じ1カラムのリスト体裁にする */
+        .q-item-audience-desktop {
+          grid-template-columns: 1fr;
+        }
       }
       @media (min-width: 1024px) {
         /* 1024px以上: topbar-innerをflex1行にしてる既存CSS(display:contents)を活かしつつ、
