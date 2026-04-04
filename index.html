@@ -1935,11 +1935,11 @@ function getAdminKeyCached() {
             <div class="poll-meta vote-meta-sub">${renderVoteInfoText(poll, myVoteTotal, maxVotes)}</div>
             ${voteNavHtml}
             <div class="vote-board">${rows}</div>
-            ${canManage && pollOpen ? `<div class="actions" style="margin-top:10px;">
+            ${canManage && pollOpen ? `<div class="actions" style="margin-top:10px;justify-content:flex-end;">
               <button class="ghost" onclick="forceVoteComposer=true;renderPanel()">編集</button>
               <button class="ghost" onclick="closeVotePoll()">投票終了</button>
             </div>` : ""}
-            ${canManage && !pollOpen ? `<div class="actions" style="margin-top:10px;">
+            ${canManage && !pollOpen ? `<div class="actions" style="margin-top:10px;justify-content:flex-end;">
               <button class="ghost" onclick="forceVoteComposer=true;renderPanel()">編集</button>
               <button class="primary" onclick="openNewVoteComposer()" ${canCreateMoreVotePolls() ? '' : 'disabled'}>新規追加</button>
             </div>` : ""}
