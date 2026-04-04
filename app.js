@@ -1314,7 +1314,7 @@ function getAdminKeyCached() {
                     <div class="poll-input-label">${esc(m.label)}</div>
                     <div class="poll-input-controls">
                       <span class="poll-meta">あなた ${Number(m.myHearts || 0)}/10</span>
-                      <button class="ghost poll-heart-btn" onclick="submitLiveHeart('${esc(m.kind)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> +1</button>
+                      <button class="ghost poll-heart-btn vote-action-btn" onclick="submitLiveHeart('${esc(m.kind)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> +1</button>
                     </div>
                   </div>
                 </div>`;
@@ -1765,7 +1765,7 @@ function getAdminKeyCached() {
               <div class="vote-row">
                 <div class="vote-head">
                   <div class="vote-label">${esc(row.label)}</div>
-                  <button class="ghost ${mine ? "active" : ""}" onclick="castVotePoll(${idx})" ${pollOpen ? '' : 'disabled'}>${pollOpen ? (mine ? "✅ 投票中" : "👍 投票") : "終了"}</button>
+                  <button class="ghost vote-action-btn ${mine ? "active" : ""}" onclick="castVotePoll(${idx})" ${pollOpen ? '' : 'disabled'}>${pollOpen ? (mine ? "✅ 投票中" : "👍 投票") : "終了"}</button>
                 </div>
                 <div class="vote-row-meta">あなた ${myCount}票</div>
               </div>`;
@@ -1796,7 +1796,7 @@ function getAdminKeyCached() {
             <div class="vote-row${rankAnimClass}" style="--rank-shift:${rankShiftPx}px;">
               <div class="vote-head">
                 <div class="vote-label">${esc(row.label)}</div>
-                <button class="ghost ${mine ? "active" : ""}" onclick="castVotePoll(${idx})" ${pollOpen ? '' : 'disabled'}>${pollOpen ? (mine ? "✅ 投票中" : "👍 投票") : "終了"}</button>
+                <button class="ghost vote-action-btn ${mine ? "active" : ""}" onclick="castVotePoll(${idx})" ${pollOpen ? '' : 'disabled'}>${pollOpen ? (mine ? "✅ 投票中" : "👍 投票") : "終了"}</button>
               </div>
               <div class="vote-bar-wrap"><div class="vote-bar vote-bar-anim" style="--vote-from:${prevWidth}%;--vote-to:${width}%"></div></div>
               <div class="vote-row-meta">${c}票${isLeader && leaderDiff > 0 ? ` / 現在トップ` : ""}</div>
@@ -1906,7 +1906,7 @@ function getAdminKeyCached() {
             <p class="reply-text">${linkifyText(r.replyText)}</p>
             <div class="reply-meta">${esc(r.displayName)} ・ ${new Date(r.createdAt).toLocaleString()}${replyDeleteMeta}</div>
             <div class="reply-actions reply-actions-audience">
-              <button class="ghost like-count-btn" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${r.votes || 0}</button>
+              <button class="ghost like-count-btn vote-action-btn" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${r.votes || 0}</button>
             </div>
           </div>
         `;
@@ -1923,7 +1923,7 @@ function getAdminKeyCached() {
               </div>
             </div>
             <div class="q-side q-side-audience">
-              <button class="ghost like-count-btn" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes}</button>
+              <button class="ghost like-count-btn vote-action-btn" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes}</button>
             </div>
           </article>`;
       }
@@ -1942,7 +1942,7 @@ function getAdminKeyCached() {
             <p class="reply-text">${linkifyText(r.replyText)}</p>
             <div class="reply-meta">${esc(r.displayName)} ・ ${new Date(r.createdAt).toLocaleString()}</div>
             <div class="reply-actions">
-              <button class="ghost like-count-btn" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${r.votes || 0}</button>
+              <button class="ghost like-count-btn vote-action-btn" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${r.votes || 0}</button>
             </div>
           </div>
         `).join('');
@@ -1958,7 +1958,7 @@ function getAdminKeyCached() {
               </div>
             </div>
             <div class="q-side">
-              <button class="ghost like-count-btn" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes}</button>
+              <button class="ghost like-count-btn vote-action-btn" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes}</button>
             </div>
           </article>`;
       }

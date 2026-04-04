@@ -259,9 +259,26 @@
         font-variant-emoji: text;
         font-weight: 700;
       }
+      .vote-action-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border-radius: var(--radius-pill);
+        font-weight: 700;
+      }
 
       /* Mobile: align submit-like actions to the right edge */
       @media (max-width: 700px) {
+        .vote-action-btn {
+          min-height: var(--control-h);
+          padding: 7px 12px;
+          font-size: var(--font-sm);
+        }
+        .poll-input-controls .poll-heart-btn.vote-action-btn {
+          min-height: var(--control-h);
+          font-size: var(--font-sm);
+        }
         .q-item-audience {
           position: relative;
           padding-bottom: 62px;
