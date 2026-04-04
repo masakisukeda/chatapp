@@ -1214,7 +1214,7 @@ function getAdminKeyCached() {
 
       function heartsCompact(count) {
         const c = Math.max(0, Number(count || 0));
-        const shown = Math.min(5, c);
+        const shown = Math.min(10, c);
         return shown > 0 ? `<span class="heart-mark">${'♥︎'.repeat(shown)}</span>` : '0';
       }
 
@@ -1320,6 +1320,7 @@ function getAdminKeyCached() {
                 </div>`;
         }).join('');
         const metricEditor = !isMobileLayout() ? `
+                <p class="poll-q poll-settings-title">設定</p>
                 <label>評価項目設定（1〜5）</label>
                   ${(metricLabelDraft || []).map((label, idx) => `
                     <div class="poll-input-row poll-input-row-editor">
@@ -1832,7 +1833,7 @@ function getAdminKeyCached() {
         renderHeroAction();
         if (VIEW === 'poll') {
           const pollNotice = String(sessionConfig.surveyUrl || '').trim()
-            ? `<div class="card ops-panel"><strong>運営からのお知らせ</strong><div class="note" style="margin-top:8px;"><a href="#" onclick="openSurveyForm(); return false;">⚠️ 本イベントではフォーム（別ウィンドウ）でアンケートをお願いしています！</a></div></div>`
+            ? `<div class="card poll-box poll-notice-card"><p class="poll-q poll-notice-title">運営からのお知らせ</p><div class="note"><a href="#" onclick="openSurveyForm(); return false;">⚠️ 本イベントではフォーム（別ウィンドウ）でアンケートをお願いしています！</a></div></div>`
             : '';
           panel.innerHTML = `${pollNotice}${renderPollPanelHtml()}`;
           return;

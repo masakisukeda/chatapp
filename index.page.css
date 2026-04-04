@@ -264,6 +264,9 @@
       .heart-mark {
         color: var(--brand) !important;
         -webkit-text-fill-color: var(--brand) !important;
+        display: inline-block;
+        transform: scaleX(1.12);
+        transform-origin: center;
       }
       .vote-action-btn {
         display: inline-flex;
@@ -272,6 +275,20 @@
         gap: 4px;
         border-radius: var(--radius-pill);
         font-weight: 700;
+      }
+      .poll-input-controls .poll-heart-btn.vote-action-btn {
+        min-width: 96px;
+        padding-left: 16px;
+        padding-right: 16px;
+      }
+      .poll-notice-card {
+        margin-bottom: 10px;
+      }
+      .poll-notice-card .note {
+        margin-top: 8px;
+      }
+      .poll-settings-title {
+        margin-bottom: 10px;
       }
 
       /* Mobile: align submit-like actions to the right edge */
@@ -284,6 +301,9 @@
         .poll-input-controls .poll-heart-btn.vote-action-btn {
           min-height: var(--control-h);
           font-size: var(--font-sm);
+          min-width: 88px;
+          padding-left: 14px;
+          padding-right: 14px;
         }
         .q-item-audience .q-side-audience {
           display: none;
