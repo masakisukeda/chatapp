@@ -24,6 +24,7 @@ const DEFAULT_REQUEST_TEXT = '運営にリクエスト';
 const LEGACY_DEFAULT_REQUEST_TEXT = '運営側へのリクエスト';
 const DEFAULT_REQUEST_AUTHOR = '__system__';
 const POLL_MAX_VOTES_PER_USER = 0; // 0 = unlimited
+const LIVE_POLL_MAX_HEARTS_PER_USER = 10;
 const VOTE_POLL_LIMIT_PER_SESSION = 3;
 
 try {
@@ -1259,8 +1260,8 @@ function submitLivePoll(PDO $pdo, array $payload): array
             ':voter_token' => $voterToken,
         ]);
         $mine = toInt($countMine['c'] ?? 0, 0);
-        if ($mine >= 5) {
-            throw new RuntimeException('1人5回までです');
+        if ($mine >= LIVE_POLL_MAX_HEARTS_PER_USER) {
+            throw new RuntimeException('1人' . (string) LIVE_POLL_MAX_HEARTS_PER_USER . '回までです');
         }
         execStmt($pdo, 'INSERT INTO live_poll_reactions (session_code, poll_kind, voter_token, created_at) VALUES (:session_code, :poll_kind, :voter_token, :created_at)', [
             ':session_code' => $sessionCode,

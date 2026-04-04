@@ -254,7 +254,9 @@
       }
       .heart-mark {
         color: var(--brand) !important;
-        -webkit-text-fill-color: var(--brand);
+        -webkit-text-fill-color: var(--brand) !important;
+        font-family: "Times New Roman", "Hiragino Sans", "Yu Gothic", serif;
+        font-variant-emoji: text;
         font-weight: 700;
       }
 
