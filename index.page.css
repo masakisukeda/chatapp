@@ -252,6 +252,10 @@
       .reply-form-audience > button {
         justify-self: end;
       }
+      .heart-mark {
+        color: var(--brand);
+        font-weight: 700;
+      }
 
       /* Mobile: align submit-like actions to the right edge */
       @media (max-width: 700px) {

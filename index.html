@@ -1132,7 +1132,7 @@ function getAdminKeyCached() {
           if (res && res.duplicated) {
             currentQuestions = before;
             renderList(currentQuestions);
-            alert('この投稿にはすでに❤️しています');
+            alert('この投稿にはすでに♥しています');
             return;
           }
           triggerFastSync();
@@ -1179,7 +1179,7 @@ function getAdminKeyCached() {
           if (res && res.duplicated) {
             currentQuestions = before;
             renderList(currentQuestions);
-            alert('この返信にはすでに❤️しています');
+            alert('この返信にはすでに♥しています');
             return;
           }
           triggerFastSync();
@@ -1333,7 +1333,7 @@ function getAdminKeyCached() {
       function heartsCompact(count) {
         const c = Math.max(0, Number(count || 0));
         const shown = Math.min(5, c);
-        return shown > 0 ? '❤️'.repeat(shown) : '0';
+        return shown > 0 ? `<span class="heart-mark">${'♥'.repeat(shown)}</span>` : '0';
       }
 
       function getBoardMetrics(board) {
@@ -1432,7 +1432,7 @@ function getAdminKeyCached() {
                     <div class="poll-input-label">${esc(m.label)}</div>
                     <div class="poll-input-controls">
                       <span class="poll-meta">あなた ${Number(m.myHearts || 0)}/5</span>
-                      <button class="ghost poll-heart-btn" onclick="submitLiveHeart('${esc(m.kind)}')">❤️ +1</button>
+                      <button class="ghost poll-heart-btn" onclick="submitLiveHeart('${esc(m.kind)}')"><span class="heart-mark" aria-hidden="true">♥</span> +1</button>
                     </div>
                   </div>
                 </div>`;
@@ -1469,7 +1469,7 @@ function getAdminKeyCached() {
               <div class="poll-input-main">
                 <div class="card poll-box">
                   <p class="poll-q">入力</p>
-                  <p class="poll-meta">ハートで評価をお願いします（ひとり5❤️まで押せます）</p>
+                  <p class="poll-meta">ハートで評価をお願いします（ひとり5<span class="heart-mark" aria-hidden="true">♥</span>まで押せます）</p>
                   ${metricInputRows}
                   <div class="field">
                     <label>聞きたいテーマ（記述式）</label>
@@ -2024,7 +2024,7 @@ function getAdminKeyCached() {
             <p class="reply-text">${linkifyText(r.replyText)}</p>
             <div class="reply-meta">${esc(r.displayName)} ・ ${new Date(r.createdAt).toLocaleString()}${replyDeleteMeta}</div>
             <div class="reply-actions reply-actions-audience">
-              <button class="ghost like-count-btn" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')">❤️ ${r.votes || 0}</button>
+              <button class="ghost like-count-btn" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥</span> ${r.votes || 0}</button>
             </div>
           </div>
         `;
@@ -2041,7 +2041,7 @@ function getAdminKeyCached() {
               </div>
             </div>
             <div class="q-side q-side-audience">
-              <button class="ghost like-count-btn" onclick="vote('${esc(q.id)}')">❤️ ${q.votes}</button>
+              <button class="ghost like-count-btn" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥</span> ${q.votes}</button>
             </div>
           </article>`;
       }
@@ -2060,7 +2060,7 @@ function getAdminKeyCached() {
             <p class="reply-text">${linkifyText(r.replyText)}</p>
             <div class="reply-meta">${esc(r.displayName)} ・ ${new Date(r.createdAt).toLocaleString()}</div>
             <div class="reply-actions">
-              <button class="ghost like-count-btn" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')">❤️ ${r.votes || 0}</button>
+              <button class="ghost like-count-btn" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥</span> ${r.votes || 0}</button>
             </div>
           </div>
         `).join('');
@@ -2076,7 +2076,7 @@ function getAdminKeyCached() {
               </div>
             </div>
             <div class="q-side">
-              <button class="ghost like-count-btn" onclick="vote('${esc(q.id)}')">❤️ ${q.votes}</button>
+              <button class="ghost like-count-btn" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥</span> ${q.votes}</button>
             </div>
           </article>`;
       }
