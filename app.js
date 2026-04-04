@@ -1913,17 +1913,12 @@ function getAdminKeyCached() {
           </div>
         `;
         }).join('');
-        const questionVoteButton = `<button class="ghost like-count-btn vote-action-btn" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes}</button>`;
-        const questionVoteArea = isMobile
-          ? `<div class="q-side q-side-audience">${questionVoteButton}</div>`
-          : `<div class="reply-actions reply-actions-audience q-actions-audience">${questionVoteButton}</div>`;
         const audienceLayoutClass = isMobile ? '' : ' q-item-audience-desktop';
         return `
           <article class="card q-item q-item-audience${audienceLayoutClass}${questionSwipeClass}" data-qid="${esc(q.id)}">
             <div class="q-main">
               <p class="q-title">${linkifyText(q.questionText)}</p>
               <div class="q-meta">${pinChip}${statusChip}${esc(q.displayName)} ・ ${new Date(q.createdAt).toLocaleString()}${deleteMeta}</div>
-              ${isMobile ? '' : questionVoteArea}
               <div class="replies">${repliesHtml}</div>
               <div class="reply-form reply-form-audience">
                 <input id="reply-input-${esc(q.id)}" placeholder="コメントに返信">
