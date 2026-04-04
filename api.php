@@ -19,7 +19,7 @@ date_default_timezone_set('Asia/Tokyo');
 const DB_DIR = __DIR__ . '/data';
 const DB_PATH = DB_DIR . '/chatapp.sqlite';
 const ADMIN_KEY_FILE = DB_DIR . '/admin_key.txt';
-const API_VERSION = '2026-03-24.4';
+const API_VERSION = '2026-04-04.1';
 const DEFAULT_REQUEST_TEXT = '運営にリクエスト';
 const LEGACY_DEFAULT_REQUEST_TEXT = '運営側へのリクエスト';
 const DEFAULT_REQUEST_AUTHOR = '__system__';
