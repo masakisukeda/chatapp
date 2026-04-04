@@ -295,14 +295,15 @@
 </div>
 <script>
 (function(){
-  const KEY='chatapp-lp-theme';
+  const KEY='qna-theme';
+  const LEGACY_KEY='chatapp-lp-theme';
   const btn=document.getElementById('themeToggle');
   const logo=document.getElementById('brandLogo');
-  const saved=localStorage.getItem(KEY);
+  const saved=localStorage.getItem(KEY) || localStorage.getItem(LEGACY_KEY);
   const init=saved || (window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
   function apply(theme){document.body.setAttribute('data-theme',theme);if(btn)btn.textContent=theme==='light'?'☀️':'🌙';if(logo)logo.src=theme==='dark'?'../img/logo-chatapp-dark.svg':'../img/logo-chatapp-light.svg';}
   apply(init);
-  if(btn){btn.addEventListener('click',()=>{const next=document.body.getAttribute('data-theme')==='light'?'dark':'light';localStorage.setItem(KEY,next);apply(next);});}
+  if(btn){btn.addEventListener('click',()=>{const next=document.body.getAttribute('data-theme')==='light'?'dark':'light';localStorage.setItem(KEY,next);localStorage.setItem(LEGACY_KEY,next);apply(next);});}
 })();
 </script>
 </body>
