@@ -1293,6 +1293,17 @@ function getAdminKeyCached() {
       }
 
       async function submitLiveHeart(kind) {
+        const isMobile = isMobileLayout();
+        const heartLimit = isMobile ? 5 : 10;
+        if (isMobile) {
+          const metrics = getBoardMetrics(currentPoll || {});
+          const target = metrics.find((m) => String(m.kind) === String(kind));
+          const mine = Number((target && target.myHearts) || 0);
+          if (mine >= heartLimit) {
+            alert('モバイルは1項目あたり5♥︎までです');
+            return;
+          }
+        }
         try {
           await api('submitLivePoll', { sessionCode: SESSION, pollKind: kind, voterToken });
           await loadPoll();
@@ -1427,14 +1438,17 @@ function getAdminKeyCached() {
                     <div class="poll-result-value">${heartsCompact(m.totalHearts)}<span class="poll-heart-count">${Number(m.totalHearts || 0)}票</span></div>
                   </div>
         `).join('');
+        const heartLimit = isMobileLayout() ? 5 : 10;
         const metricInputRows = metrics.map((m) => {
+          const myHearts = Number(m.myHearts || 0);
+          const atLimit = myHearts >= heartLimit;
           return `
                 <div class="field">
                   <div class="poll-input-row">
                     <div class="poll-input-label">${esc(m.label)}</div>
                     <div class="poll-input-controls">
-                      <span class="poll-meta">あなた ${Number(m.myHearts || 0)}/10</span>
-                      <button class="ghost poll-heart-btn vote-action-btn" onclick="submitLiveHeart('${esc(m.kind)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> +1</button>
+                      <span class="poll-meta">あなた ${myHearts}/${heartLimit}</span>
+                      <button class="ghost like-count-btn vote-action-btn" onclick="submitLiveHeart('${esc(m.kind)}')" ${atLimit ? 'disabled aria-disabled="true"' : ''}><span class="heart-mark" aria-hidden="true">♥︎</span> +1</button>
                     </div>
                   </div>
                 </div>`;
@@ -1472,7 +1486,7 @@ function getAdminKeyCached() {
               <div class="poll-input-main">
                 <div class="card poll-box">
                   <p class="poll-q">入力</p>
-                  <p class="poll-meta">ハートで評価をお願いします（ひとり10<span class="heart-mark" aria-hidden="true">♥︎</span>まで押せます）</p>
+                  <p class="poll-meta">ハートで評価をお願いします（ひとり${heartLimit}<span class="heart-mark" aria-hidden="true">♥︎</span>まで押せます）</p>
                   ${metricInputRows}
                   <div class="field">
                     <label>聞きたいテーマ（記述式）</label>
@@ -2105,6 +2119,7 @@ function getAdminKeyCached() {
           const questionDeleteAction = canDeleteQuestion
             ? `<button class="ghost feed-action-btn" type="button" onclick="deleteMyQuestion('${esc(q.id)}')">削除</button>`
             : '';
+          const questionHeartAction = `<button class="ghost like-count-btn vote-action-btn feed-action-btn" type="button" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes || 0}</button>`;
           entries.push({
             type: 'q',
             ts: latestQuestionTs,
@@ -2118,10 +2133,9 @@ function getAdminKeyCached() {
                   <div class="feed-meta-line">${pinChip}${statusChip}${esc(q.displayName)} ・ ${new Date(q.createdAt).toLocaleString()}</div>
                 </div>
                 <div class="feed-actions">
-                  <button class="ghost feed-action-btn" type="button" onclick="submitReplyQuick('${esc(q.id)}')">返信</button>
-                  <button class="ghost like-count-btn vote-action-btn feed-action-btn" type="button" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes || 0}</button>
                   ${questionEditAction}
                   ${questionDeleteAction}
+                  ${questionHeartAction}
                 </div>
               </article>`,
           });
@@ -2133,6 +2147,7 @@ function getAdminKeyCached() {
             const replyDeleteAction = canDeleteReply
               ? `<button class="ghost feed-action-btn" type="button" onclick="deleteMyReply('${esc(q.id)}','${esc(r.id)}')">削除</button>`
               : '';
+            const replyHeartAction = `<button class="ghost like-count-btn vote-action-btn feed-action-btn" type="button" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${r.votes || 0}</button>`;
             entries.push({
               type: 'r',
               ts: toTime(r.createdAt),
@@ -2147,9 +2162,9 @@ function getAdminKeyCached() {
                     <div class="feed-parent-line">↳ ${esc(summarize(q.questionText))}</div>
                   </div>
                   <div class="feed-actions">
-                    <button class="ghost like-count-btn vote-action-btn feed-action-btn" type="button" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${r.votes || 0}</button>
                     ${replyEditAction}
                     ${replyDeleteAction}
+                    ${replyHeartAction}
                   </div>
                 </article>`,
             });
@@ -2710,6 +2725,11 @@ function getAdminKeyCached() {
         if (surveyBtn) surveyBtn.addEventListener('click', configureSurveyFormUrl);
         const manualBtn = document.getElementById('openManualBtn');
         if (manualBtn) manualBtn.addEventListener('click', openManual);
+        const brandHomeLink = document.getElementById('brandHomeLink');
+        if (brandHomeLink) brandHomeLink.addEventListener('click', (event) => {
+          event.preventDefault();
+          setView(isMobileLayout() ? 'audience' : 'screen');
+        });
         // Floating tab bar (PC) + Mobile tabs: bind click events
         const tabIds = [
           ['tabScreen', 'screen'], ['tabAudience', 'audience'],

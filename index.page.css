@@ -420,10 +420,8 @@
         border-radius: var(--radius-pill);
         font-weight: 700;
       }
-      .poll-input-controls .poll-heart-btn.vote-action-btn {
-        min-width: 96px;
-        padding-left: 16px;
-        padding-right: 16px;
+      .poll-input-controls .like-count-btn.vote-action-btn {
+        margin-left: auto;
       }
       .poll-notice-card {
         margin-bottom: 10px;
@@ -449,40 +447,37 @@
           padding: 7px 12px;
           font-size: var(--font-sm);
         }
-        .poll-input-controls .poll-heart-btn.vote-action-btn {
-          min-height: var(--control-h);
-          font-size: var(--font-sm);
-          min-width: 88px;
-          padding-left: 14px;
-          padding-right: 14px;
+        .poll-input-controls .like-count-btn.vote-action-btn {
+          margin-left: auto;
         }
         .q-item-audience .q-side-audience {
           display: none;
         }
         .q-item-audience {
           grid-template-columns: 1fr;
-          gap: 14px;
-          padding: 16px 14px;
-          border-radius: 22px;
+          gap: 10px;
+          padding: 8px 10px;
+          border-radius: 10px;
+          border: 1px solid var(--line);
           box-shadow: none;
-          background: transparent;
+          background: linear-gradient(180deg, var(--surface) 0, var(--surface-2) 100%);
         }
         .q-item-audience .q-title {
-          font-size: clamp(21px, 6vw, 26px);
-          line-height: 1.35;
-        }
-        .q-item-audience .q-meta {
-          margin-top: 8px;
-          font-size: 12px;
+          font-size: var(--font-lg);
           line-height: 1.45;
         }
+        .q-item-audience .q-meta {
+          margin-top: 7px;
+          font-size: var(--font-xs);
+          line-height: 1.5;
+        }
         .q-item-audience .replies {
-          margin-top: 14px;
-          gap: 12px;
+          margin-top: 8px;
+          gap: 10px;
         }
         body[data-theme="dark"] .q-item-audience {
-          background: transparent;
-          border-color: rgba(247, 249, 252, 0.42);
+          background: linear-gradient(180deg, var(--surface) 0, var(--surface-2) 100%);
+          border-color: var(--line);
         }
         body[data-theme="dark"] .q-item-audience .q-title,
         body[data-theme="dark"] .q-item-audience .q-meta,
@@ -491,43 +486,44 @@
           color: #f4f7f9;
         }
         .q-item-audience .reply-item {
-          position: relative;
-          display: block;
-          padding: 12px 86px 12px 12px;
-          border-radius: 20px;
+          position: static;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 0 8px;
+          padding: 8px 10px;
+          border-radius: 10px;
+          border: 1px solid var(--line);
+          background: linear-gradient(180deg, var(--surface) 0, var(--surface-2) 100%);
           box-shadow: none;
         }
         body[data-theme="dark"] .q-item-audience .reply-item {
-          background: rgba(116, 116, 119, 0.48);
-          border-color: rgba(247, 249, 252, 0.38);
+          background: linear-gradient(180deg, var(--surface) 0, var(--surface-2) 100%);
+          border-color: var(--line);
         }
         .q-item-audience .reply-item .reply-text,
         .q-item-audience .reply-item .reply-meta {
           padding-right: 0;
         }
         .q-item-audience .reply-item .reply-text {
-          font-size: 18px;
-          line-height: 1.45;
+          font-size: var(--font-md);
+          line-height: 1.5;
         }
         .q-item-audience .reply-item .reply-meta {
-          margin-top: 6px;
-          font-size: 11px;
+          margin-top: 4px;
+          font-size: var(--font-xs);
         }
         .q-item-audience .reply-item .reply-actions.reply-actions-audience {
-          position: absolute;
-          top: 50%;
-          right: 12px;
-          transform: translateY(-50%);
+          position: static;
           width: auto;
           margin-top: 0;
-          align-items: center;
+          align-items: flex-start;
           justify-content: flex-end;
         }
         .q-item-audience .reply-item .reply-actions.reply-actions-audience .like-count-btn {
-          min-width: 74px;
-          min-height: 40px;
+          min-width: 44px;
+          min-height: var(--control-h);
           border-radius: 999px;
-          padding: 7px 12px;
+          padding: 7px 10px;
         }
         body[data-theme="dark"] .q-item-audience .reply-item .reply-actions.reply-actions-audience .like-count-btn {
           border-color: rgba(247, 249, 252, 0.4);
@@ -586,8 +582,7 @@
         .poll-mine,
         .poll-result-item,
         .poll-topic-item,
-        .poll-input-controls .poll-meta,
-        .poll-input-controls .poll-heart-btn {
+        .poll-input-controls .poll-meta {
           font-size: 14px;
         }
         .poll-heart-count {
