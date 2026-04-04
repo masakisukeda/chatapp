@@ -77,10 +77,12 @@ function handleGet(PDO $pdo): void
     if ($action === 'getPoll') {
         $sessionCode = sanitize($_GET['session'] ?? 'default', 40);
         $voterToken = sanitize($_GET['voterToken'] ?? '', 80);
+        $pollId = sanitize($_GET['pollId'] ?? '', 64);
         $pollMeta = getPollMeta($pdo, $sessionCode);
         respond([
             'ok' => true,
-            'poll' => getPollInternal($pdo, $sessionCode, $voterToken),
+            'poll' => getPollInternal($pdo, $sessionCode, $voterToken, $pollId),
+            'pollList' => listPollSummaries($pdo, $sessionCode),
             'pollCount' => $pollMeta['pollCount'],
             'maxPolls' => $pollMeta['maxPolls'],
             'canCreateMore' => $pollMeta['canCreateMore'],
@@ -261,8 +263,10 @@ function handlePost(PDO $pdo): void
                 'poll' => getPollInternal(
                     $pdo,
                     $sessionCode,
-                    sanitize($payload['voterToken'] ?? '', 80)
+                    sanitize($payload['voterToken'] ?? '', 80),
+                    sanitize($payload['pollId'] ?? '', 64)
                 ),
+                'pollList' => listPollSummaries($pdo, $sessionCode),
                 'pollCount' => $pollMeta['pollCount'],
                 'maxPolls' => $pollMeta['maxPolls'],
                 'canCreateMore' => $pollMeta['canCreateMore'],
@@ -726,11 +730,20 @@ function setSessionConfig(PDO $pdo, array $payload): array
     return ['ok' => true, 'config' => ['anonymousOnly' => $anonymousOnly === 1, 'tipUrl' => $tipUrl, 'surveyUrl' => $surveyUrl, 'metricLabels' => $metricLabels]];
 }
 
-function getPollInternal(PDO $pdo, string $sessionCode, string $voterToken): ?array
+function getPollInternal(PDO $pdo, string $sessionCode, string $voterToken, string $pollId = ''): ?array
 {
-    $row = fetchOne($pdo, 'SELECT id, session_code, question_text, options_json, poll_type, status, target_votes, max_votes_per_user, timer_minutes, ends_at, created_at, updated_at FROM polls WHERE session_code = :session_code ORDER BY created_at DESC LIMIT 1', [
-        ':session_code' => $sessionCode,
-    ]);
+    $row = null;
+    if ($pollId !== '') {
+        $row = fetchOne($pdo, 'SELECT id, session_code, question_text, options_json, poll_type, status, target_votes, max_votes_per_user, timer_minutes, ends_at, created_at, updated_at FROM polls WHERE session_code = :session_code AND id = :id LIMIT 1', [
+            ':session_code' => $sessionCode,
+            ':id' => $pollId,
+        ]);
+    }
+    if (!$row) {
+        $row = fetchOne($pdo, 'SELECT id, session_code, question_text, options_json, poll_type, status, target_votes, max_votes_per_user, timer_minutes, ends_at, created_at, updated_at FROM polls WHERE session_code = :session_code ORDER BY created_at DESC, updated_at DESC, rowid DESC LIMIT 1', [
+            ':session_code' => $sessionCode,
+        ]);
+    }
     if (!$row) {
         return null;
     }
@@ -934,6 +947,27 @@ function getPollMeta(PDO $pdo, string $sessionCode): array
         'maxPolls' => $maxPolls,
         'canCreateMore' => $pollCount < $maxPolls,
     ];
+}
+
+function listPollSummaries(PDO $pdo, string $sessionCode): array
+{
+    $stmt = $pdo->prepare('SELECT id, question_text, status, created_at, updated_at, timer_minutes, ends_at FROM polls WHERE session_code = :session_code ORDER BY created_at DESC, updated_at DESC, rowid DESC');
+    $stmt->execute([':session_code' => $sessionCode]);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    $out = [];
+    foreach ($rows as $row) {
+        $endsAt = (string) ($row['ends_at'] ?? '');
+        $out[] = [
+            'id' => (string) ($row['id'] ?? ''),
+            'questionText' => (string) ($row['question_text'] ?? ''),
+            'status' => effectivePollStatus((string) ($row['status'] ?? 'OPEN'), $endsAt),
+            'createdAt' => (string) ($row['created_at'] ?? ''),
+            'updatedAt' => (string) ($row['updated_at'] ?? ''),
+            'timerMinutes' => normalizeTimerMinutes($row['timer_minutes'] ?? 0),
+            'endsAt' => $endsAt,
+        ];
+    }
+    return $out;
 }
 
 function updatePollTarget(PDO $pdo, array $payload): array

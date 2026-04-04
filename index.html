@@ -156,6 +156,8 @@
       let voteDraftTimerMinutes = 0;
       let votePollCount = 0;
       let votePollLimit = 3;
+      let votePollList = [];
+      let selectedVotePollId = '';
       let pollDraftType = 'CHOICE';
       let pollDraftTextPlaceholder = '';
       let livePollTopicDraft = '';
@@ -749,7 +751,10 @@ function getAdminKeyCached() {
         if (action === 'getSessionConfig') {
           return { session: p.sessionCode || 'default' };
         }
-        if (action === 'getPoll' || action === 'getLivePoll') {
+        if (action === 'getPoll') {
+          return { session: p.sessionCode || 'default', voterToken: p.voterToken || '', pollId: p.pollId || '' };
+        }
+        if (action === 'getLivePoll') {
           return { session: p.sessionCode || 'default', voterToken: p.voterToken || '' };
         }
         return p;
@@ -1493,13 +1498,37 @@ function getAdminKeyCached() {
           return [p.id || '', p.status || '', p.updatedAt || '', p.totalVotes || 0, counts].join('|');
         };
         const prevKey = pollKey(prevPoll);
+        const normalizeVotePollList = (items) => {
+          if (!Array.isArray(items)) return [];
+          return items
+            .map((item) => ({
+              id: String(item && item.id || ''),
+              questionText: String(item && item.questionText || ''),
+              status: String(item && item.status || 'CLOSED'),
+              createdAt: String(item && item.createdAt || ''),
+            }))
+            .filter((item) => !!item.id);
+        };
+        const syncVoteSelection = (poll, list) => {
+          if (poll && poll.id) {
+            selectedVotePollId = String(poll.id);
+            return;
+          }
+          if (Array.isArray(list) && list.length) {
+            selectedVotePollId = String(list[0].id || '');
+            return;
+          }
+          selectedVotePollId = '';
+        };
 
         try {
-          const res = await api("getPoll", { sessionCode: SESSION, voterToken });
+          const res = await api("getPoll", { sessionCode: SESSION, voterToken, pollId: selectedVotePollId });
           const poll = res && res.poll ? res.poll : null;
           votePollCount = Math.max(0, Number(res && res.pollCount || 0));
           votePollLimit = Math.max(1, Number(res && res.maxPolls || 3));
+          votePollList = normalizeVotePollList(res && res.pollList);
           currentVotePoll = poll || null;
+          syncVoteSelection(currentVotePoll, votePollList);
           voteLoadError = '';
           syncVoteTargetMenuUi();
           if (VIEW === 'vote') {
@@ -1519,13 +1548,16 @@ function getAdminKeyCached() {
           u.searchParams.set('action', 'getPoll');
           u.searchParams.set('session', SESSION);
           u.searchParams.set('voterToken', voterToken || '');
+          if (selectedVotePollId) u.searchParams.set('pollId', selectedVotePollId);
           u.searchParams.set('_t', String(Date.now()));
           const r = await fetch(u.toString(), { cache: 'no-store' });
           const j = await r.json();
           if (j && j.ok) {
             votePollCount = Math.max(0, Number(j && j.pollCount || votePollCount || 0));
             votePollLimit = Math.max(1, Number(j && j.maxPolls || votePollLimit || 3));
+            votePollList = normalizeVotePollList(j && j.pollList);
             currentVotePoll = j.poll || null;
+            syncVoteSelection(currentVotePoll, votePollList);
             voteLoadError = '';
             syncVoteTargetMenuUi();
             if (VIEW === 'vote') {
@@ -1619,6 +1651,13 @@ function getAdminKeyCached() {
         renderPanel();
       }
 
+      async function openVotePollById(pollId) {
+        const nextId = String(pollId || '').trim();
+        if (!nextId || nextId === selectedVotePollId) return;
+        selectedVotePollId = nextId;
+        await loadVotePoll();
+      }
+
       async function createVotePoll() {
         const questionText = String(voteDraftQuestion || "").trim();
         const options = (voteDraftOptionList || []).map((x) => String(x || "").trim()).filter(Boolean);
@@ -1640,6 +1679,9 @@ function getAdminKeyCached() {
           }
           if (createRes && typeof createRes.maxPolls !== 'undefined') {
             votePollLimit = Math.max(1, Number(createRes.maxPolls || 3));
+          }
+          if (createRes && createRes.id) {
+            selectedVotePollId = String(createRes.id);
           }
           forceVoteComposer = false;
           saveVoteDraft();
@@ -1696,6 +1738,8 @@ function getAdminKeyCached() {
           currentVotePoll = null;
           votePollCount = 0;
           votePollLimit = 3;
+          votePollList = [];
+          selectedVotePollId = '';
           votePrevRankMap = new Map();
           votePrevWidthMap = new Map();
           renderPanel();
@@ -1738,6 +1782,22 @@ function getAdminKeyCached() {
       }
       function renderVotePanelHtml() {
         const poll = currentVotePoll;
+        const canManage = !isMobileLayout();
+        const activePollId = String((poll && poll.id) || selectedVotePollId || '');
+        const voteNavHtml = canManage && Array.isArray(votePollList) && votePollList.length
+          ? `<div class="field" style="margin-top:12px;">
+              <label>作成済み投票</label>
+              <div class="actions" style="margin-top:6px; flex-wrap:wrap;">
+                ${votePollList.map((item, idx) => {
+                  const pollId = String(item && item.id || '');
+                  const title = String(item && item.questionText || '').trim() || `投票${idx + 1}`;
+                  const status = String(item && item.status || 'CLOSED') === 'OPEN' ? '進行中' : '終了';
+                  const label = `${idx + 1}. ${title.slice(0, 20)}${title.length > 20 ? '…' : ''}（${status}）`;
+                  return `<button class="ghost ${pollId === activePollId ? 'active' : ''}" onclick="openVotePollById('${esc(pollId)}')" ${pollId === activePollId ? 'disabled' : ''}>${esc(label)}</button>`;
+                }).join('')}
+              </div>
+            </div>`
+          : '';
         if (!poll || forceVoteComposer) {
           votePrevRankMap = new Map();
           votePrevWidthMap = new Map();
@@ -1754,6 +1814,7 @@ function getAdminKeyCached() {
             <div class="card poll-box">
               <p class="poll-q">ライブ投票を作成（運営）</p>
               <div class="poll-meta">作成数 ${Number(votePollCount || 0)} / ${Number(votePollLimit || 3)}</div>
+              ${voteNavHtml}
               <div class="field">
                 <label>投票タイトル</label>
                 <input value="${esc(voteDraftQuestion)}" maxlength="200" oninput="voteDraftQuestion=this.value;saveVoteDraft()" placeholder="例）今日もっと聞きたいのは？">
@@ -1865,7 +1926,6 @@ function getAdminKeyCached() {
           const width = leaderCount > 0 ? Math.max(0, Math.min(100, Math.round((row.count / leaderCount) * 100))) : 0;
           return [row.idx, width];
         }));
-        const canManage = !isMobileLayout();
         return `
           <div class="card poll-box">
             <div class="vote-title-row">
@@ -1873,6 +1933,7 @@ function getAdminKeyCached() {
               <div class="vote-title-timer">${renderVoteTimerHtml(poll)}</div>
             </div>
             <div class="poll-meta vote-meta-sub">${renderVoteInfoText(poll, myVoteTotal, maxVotes)}</div>
+            ${voteNavHtml}
             <div class="vote-board">${rows}</div>
             ${canManage && pollOpen ? `<div class="actions" style="margin-top:10px;">
               <button class="ghost" onclick="forceVoteComposer=true;renderPanel()">編集</button>
@@ -2316,6 +2377,8 @@ function getAdminKeyCached() {
         currentVotePoll = null;
         votePollCount = 0;
         votePollLimit = 3;
+        votePollList = [];
+        selectedVotePollId = '';
         pollDraftQuestion = '';
         pollDraftOptionList = ['', ''];
         await loadVoteDraft();
