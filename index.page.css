@@ -440,6 +440,10 @@
         body[data-theme="dark"] .topbar {
           background: transparent;
         }
+        .topbar-row.topbar-row-2 {
+          background: transparent !important;
+          border-top-color: transparent;
+        }
         .vote-action-btn {
           min-height: var(--control-h);
           padding: 7px 12px;
@@ -461,6 +465,7 @@
           padding: 16px 14px;
           border-radius: 22px;
           box-shadow: none;
+          background: transparent;
         }
         .q-item-audience .q-title {
           font-size: clamp(21px, 6vw, 26px);
@@ -476,7 +481,7 @@
           gap: 12px;
         }
         body[data-theme="dark"] .q-item-audience {
-          background: #767679;
+          background: transparent;
           border-color: rgba(247, 249, 252, 0.42);
         }
         body[data-theme="dark"] .q-item-audience .q-title,
