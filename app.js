@@ -250,12 +250,16 @@ const ADMIN_ACTIONS = new Set([
         }, 300);
       }
 
-      async function loadVoteDraft() {
+      function resetVoteDraft() {
         appState.voteDraftQuestion = '';
         appState.voteDraftOptionList = ['選択肢A', '選択肢B'];
         appState.voteDraftTargetVotes = 50;
         appState.voteDraftMaxVotesPerUser = 0;
         appState.voteDraftTimerMinutes = 0;
+      }
+
+      async function loadVoteDraft() {
+        resetVoteDraft();
 
         try {
           const raw = localStorage.getItem(storageKey(VOTE_DRAFT_PREFIX));
@@ -274,10 +278,7 @@ const ADMIN_ACTIONS = new Set([
             appState.voteDraftTimerMinutes = tm;
           }
         } catch (e) {
-          appState.voteDraftQuestion = '';
-          appState.voteDraftOptionList = ['選択肢A', '選択肢B'];
-          appState.voteDraftMaxVotesPerUser = 0;
-          appState.voteDraftTimerMinutes = 0;
+          resetVoteDraft();
         }
 
         try {
@@ -1669,9 +1670,7 @@ function getAdminKeyCached() {
           return;
         }
         appState.forceVoteComposer = true;
-        appState.voteDraftQuestion = '';
-        appState.voteDraftOptionList = ['選択肢A', '選択肢B'];
-        appState.voteDraftTimerMinutes = 0;
+        resetVoteDraft();
         saveVoteDraft();
         renderPanel();
       }
