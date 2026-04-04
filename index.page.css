@@ -28,14 +28,23 @@
           --pc-font-body: 16px;
           --pc-font-title: 20px;
           --pc-font-headline: 28px;
+          --pc-card-gap: 16px;
         }
         /* リアルタイム表示: リクエスト投稿タイトルをpoll-qと同サイズに */
         .presenter .q-title {
           line-height: 1.5;
         }
+        /* PC全ページ: カード間の縦余白を統一 */
+        .list,
+        .audience-flat-list,
+        .poll-list,
+        .vote-board,
+        .poll-stack {
+          gap: var(--pc-card-gap);
+        }
         /* リアルタイム表示: カード間の余白・行間 */
         .presenter .list {
-          gap: 18px;
+          gap: var(--pc-card-gap);
         }
         .presenter .q-item {
           padding: 22px 24px;
@@ -51,7 +60,7 @@
         }
         /* リスト項目の間隔 */
         .poll-list {
-          gap: 10px;
+          gap: var(--pc-card-gap);
         }
         /* 結果アイテム: pill → rounded-rect でスキャンしやすく */
         .poll-result-item {
@@ -77,7 +86,7 @@
         }
         .audience-flat-list {
           display: grid;
-          gap: 8px;
+          gap: var(--pc-card-gap);
         }
         .audience-flat-list .feed-row {
           display: grid;
