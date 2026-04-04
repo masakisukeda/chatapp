@@ -917,7 +917,6 @@ function getAdminKeyCached() {
 
 
       function shell() {
-        const title = VIEW === 'screen' ? 'リアルタイム表示' : (VIEW === 'poll' ? 'ライブアンケート' : (VIEW === 'vote' ? 'ライブ投票' : '投稿'));
         const subtitle = VIEW === 'poll'
           ? '左でリアルタイム結果、右でその場入力。満足度・理解度・聞きたいテーマをみんなで集めます。'
           : (VIEW === 'vote'
@@ -926,7 +925,6 @@ function getAdminKeyCached() {
 
         return `
           <section class="hero">
-            <h1>${title}</h1>
             <div class="hero-meta">
               <p>${subtitle}</p>
               <div id="heroAction" class="hero-action"></div>
