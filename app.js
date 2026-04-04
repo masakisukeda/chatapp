@@ -724,86 +724,83 @@ function getAdminKeyCached() {
         throw lastErr || new Error('API通信に失敗しました');
       }
 
-      async function api(action, payload) {
-        if (!API_URL) throw new Error('API URL を入力してください（ローカルは http://127.0.0.1:8000/api.php）');
+      function syncApiUrlInput_(nextUrl) {
+        const normalized = String(nextUrl || '').trim();
+        if (!normalized || normalized === API_URL) return;
+        API_URL = normalized;
+        const apiInput = document.getElementById('apiUrl');
+        if (apiInput) apiInput.value = API_URL;
+      }
 
-        // 読み取り系はGET優先（モバイル環境でPOSTが失敗するケースを回避）
-        if (READ_ACTIONS.has(action)) {
-          try {
-            return await getApi_(API_URL, action, payload || {});
-          } catch (err) {
-            // GET失敗時はPOSTでも再試行（環境依存のキャッシュ/中間層差分を吸収）
-            try {
-              return await postApiWithRetry_(API_URL, action, payload || {}, 1);
-            } catch (_postErr) {}
-            if (isHostedHttp && sameOriginApiUrl && API_URL !== sameOriginApiUrl) {
-              try {
-                const data = await getApi_(sameOriginApiUrl, action, payload || {});
-                API_URL = sameOriginApiUrl;
-                  const apiInput = document.getElementById('apiUrl');
-                if (apiInput) apiInput.value = API_URL;
-                return data;
-              } catch (_e) {}
-              try {
-                const data = await postApiWithRetry_(sameOriginApiUrl, action, payload || {}, 1);
-                API_URL = sameOriginApiUrl;
-                const apiInput = document.getElementById('apiUrl');
-                if (apiInput) apiInput.value = API_URL;
-                return data;
-              } catch (_e2) {}
-            }
-            const message = err && err.message ? err.message : String(err);
-            if (/load failed|failed to fetch|networkerror/i.test(message)) {
-              throw new Error(`load failed (${action}) / API: ${API_URL}`);
-            }
-            throw new Error(`${message} / API: ${API_URL}`);
-          }
+      function wrapApiError_(err, action) {
+        const message = err && err.message ? err.message : String(err);
+        if (/load failed|failed to fetch|networkerror/i.test(message)) {
+          return new Error(`load failed (${action}) / API: ${API_URL}`);
         }
+        return new Error(`${message} / API: ${API_URL}`);
+      }
 
-        const callApi = async (url, reqPayload) => postApiWithRetry_(url, action, reqPayload, 2);
-        const withCachedKey = { ...(payload || {}) };
+      async function callReadApi_(action, payload) {
+        try {
+          return await getApi_(API_URL, action, payload);
+        } catch (err) {
+          try {
+            return await postApiWithRetry_(API_URL, action, payload, 1);
+          } catch (_postErr) {}
+          if (isHostedHttp && sameOriginApiUrl && API_URL !== sameOriginApiUrl) {
+            try {
+              const data = await getApi_(sameOriginApiUrl, action, payload);
+              syncApiUrlInput_(sameOriginApiUrl);
+              return data;
+            } catch (_e) {}
+            try {
+              const data = await postApiWithRetry_(sameOriginApiUrl, action, payload, 1);
+              syncApiUrlInput_(sameOriginApiUrl);
+              return data;
+            } catch (_e2) {}
+          }
+          throw wrapApiError_(err, action);
+        }
+      }
+
+      async function callWriteApi_(action, payload) {
+        const requestPayload = { ...payload };
         if (ADMIN_ACTIONS.has(action)) {
           let cached = getAdminKeyCached();
-          if (!cached) {
-            cached = await ensureAdminKeyIfNeeded(action);
-          }
-          if (cached) withCachedKey.adminKey = cached;
+          if (!cached) cached = await ensureAdminKeyIfNeeded(action);
+          if (cached) requestPayload.adminKey = cached;
         }
 
-        const attempt = async (primaryUrl, fallbackUrl, reqPayload) => {
+        const attempt = async (reqPayload) => {
           try {
-            return await callApi(primaryUrl, reqPayload);
+            return await postApiWithRetry_(API_URL, action, reqPayload, 2);
           } catch (err) {
-            const canFallbackToSameOrigin = isHostedHttp && fallbackUrl && primaryUrl !== fallbackUrl;
-            if (canFallbackToSameOrigin) {
-              const data = await callApi(fallbackUrl, reqPayload);
-              API_URL = fallbackUrl;
-              const apiInput = document.getElementById('apiUrl');
-              if (apiInput) apiInput.value = API_URL;
-              return data;
-            }
-            throw err;
+            const canFallbackToSameOrigin = isHostedHttp && sameOriginApiUrl && API_URL !== sameOriginApiUrl;
+            if (!canFallbackToSameOrigin) throw err;
+            const data = await postApiWithRetry_(sameOriginApiUrl, action, reqPayload, 2);
+            syncApiUrlInput_(sameOriginApiUrl);
+            return data;
           }
         };
 
         try {
-          return await attempt(API_URL, sameOriginApiUrl, withCachedKey);
+          return await attempt(requestPayload);
         } catch (err) {
           const message = err && err.message ? err.message : String(err);
-          const needAdminKey = /管理者キーが正しくありません|管理者パスワードが正しくありません|運営者パスワードが正しくありません|運営者パスワード未設定/.test(String(message)) && ADMIN_ACTIONS.has(action);
-
-          if (needAdminKey) {
-            clearAdminKeyCached();
-            const prompted = await ensureAdminKeyIfNeeded(action);
-            const retryPayload = { ...(payload || {}), adminKey: prompted };
-            return await attempt(API_URL, sameOriginApiUrl, retryPayload);
-          }
-
-          if (/load failed|failed to fetch|networkerror/i.test(message)) {
-            throw new Error(`load failed (${action}) / API: ${API_URL}`);
-          }
-          throw new Error(`${message} / API: ${API_URL}`);
+          const needAdminKey = ADMIN_ACTIONS.has(action)
+            && /管理者キーが正しくありません|管理者パスワードが正しくありません|運営者パスワードが正しくありません|運営者パスワード未設定/.test(String(message));
+          if (!needAdminKey) throw wrapApiError_(err, action);
+          clearAdminKeyCached();
+          const prompted = await ensureAdminKeyIfNeeded(action);
+          return await attempt({ ...payload, adminKey: prompted });
         }
+      }
+
+      async function api(action, payload) {
+        if (!API_URL) throw new Error('API URL を入力してください（ローカルは http://127.0.0.1:8000/api.php）');
+        const reqPayload = payload || {};
+        if (READ_ACTIONS.has(action)) return callReadApi_(action, reqPayload);
+        return callWriteApi_(action, reqPayload);
       }
 
       function apiGetUrl(action, extra = {}) {
@@ -1408,31 +1405,7 @@ function getAdminKeyCached() {
         }
       }
 
-      function renderPollPanelHtml() {
-        const board = appState.currentPoll || {
-          satisfactionHearts: 0,
-          understandingHearts: 0,
-          mySatisfactionHearts: 0,
-          myUnderstandingHearts: 0,
-          topics: [],
-          topicTotal: 0,
-        };
-        const metrics = getBoardMetrics(board);
-        const canManageTopics = operatorMode && !isMobileLayout();
-        const topicRows = (Array.isArray(board.topics) ? board.topics : []).map((t, idx) => {
-            const topicText = String(t.text || '');
-            const topicEncoded = encodeURIComponent(topicText);
-            return `
-            <div class="poll-list">
-              <div class="poll-row poll-topic-item">
-                <div class="poll-opt-label">${idx + 1}. ${linkifyText(topicText)}</div>
-                <div class="poll-topic-right">
-                  <div class="poll-meta poll-topic-votes">${Number(t.count || 0)}票</div>
-                  ${canManageTopics ? `<button class="ghost poll-topic-delete" onclick="deleteLiveTopic('${topicEncoded}')">削除</button>` : ""}
-                </div>
-              </div>
-            </div>`;
-          }).join('');
+      function renderPollMetrics(board, metrics, heartLimit) {
         const metricsForResult = metrics
           .map((m, idx) => ({ ...m, _idx: idx }))
           .sort((a, b) => {
@@ -1440,14 +1413,13 @@ function getAdminKeyCached() {
             if (diff !== 0) return diff;
             return a._idx - b._idx;
           });
-        const metricResultRows = metricsForResult.map((m) => `
+        const resultRows = metricsForResult.map((m) => `
                   <div class="poll-result-item">
                     <div class="poll-result-label">${esc(m.label)}</div>
                     <div class="poll-result-value">${heartsCompact(m.totalHearts)}<span class="poll-heart-count">${Number(m.totalHearts || 0)}票</span></div>
                   </div>
         `).join('');
-        const heartLimit = liveHeartLimit();
-        const metricInputRows = metrics.map((m) => {
+        const inputRows = metrics.map((m) => {
           const myHearts = Number(m.myHearts || 0);
           const atLimit = myHearts >= heartLimit;
           return `
@@ -1461,6 +1433,67 @@ function getAdminKeyCached() {
                   </div>
                 </div>`;
         }).join('');
+        const totalHearts = metrics.reduce((sum, m) => sum + Number(m.totalHearts || 0), 0);
+        return {
+          totalHearts,
+          resultRows,
+          inputRows,
+          topicTotal: Number(board.topicTotal || 0),
+        };
+      }
+
+      function renderPollTopics(board, canManageTopics) {
+        return (Array.isArray(board.topics) ? board.topics : []).map((t, idx) => {
+          const topicText = String(t.text || '');
+          const topicEncoded = encodeURIComponent(topicText);
+          return `
+            <div class="poll-list">
+              <div class="poll-row poll-topic-item">
+                <div class="poll-opt-label">${idx + 1}. ${linkifyText(topicText)}</div>
+                <div class="poll-topic-right">
+                  <div class="poll-meta poll-topic-votes">${Number(t.count || 0)}票</div>
+                  ${canManageTopics ? `<button class="ghost poll-topic-delete" onclick="deleteLiveTopic('${topicEncoded}')">削除</button>` : ""}
+                </div>
+              </div>
+            </div>`;
+        }).join('');
+      }
+
+      function renderPollComposer(metricsView, heartLimit, metricEditor) {
+        return `
+            <div class="poll-input-split">
+              <div class="poll-input-main">
+                <div class="card poll-box">
+                  <p class="poll-q">入力</p>
+                  <p class="poll-meta">ハートで評価をお願いします（ひとり${heartLimit}<span class="heart-mark" aria-hidden="true">♥︎</span>まで押せます）</p>
+                  ${metricsView.inputRows}
+                  <div class="field">
+                    <label>聞きたいテーマ（記述式）</label>
+                    <textarea id="liveTopicInput" maxlength="300" placeholder="例）実践事例、運用フロー、失敗パターン" oninput="appState.livePollTopicDraft=this.value">${esc(appState.livePollTopicDraft)}</textarea>
+                    <div class="actions poll-topic-actions">
+                      <button class="ghost" onclick="submitLiveTopic()">送信</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              ${metricEditor ? `<div class="poll-input-editor"><div class="card poll-box">${metricEditor}</div></div>` : ''}
+            </div>`;
+      }
+
+      function renderPollPanelHtml() {
+        const board = appState.currentPoll || {
+          satisfactionHearts: 0,
+          understandingHearts: 0,
+          mySatisfactionHearts: 0,
+          myUnderstandingHearts: 0,
+          topics: [],
+          topicTotal: 0,
+        };
+        const metrics = getBoardMetrics(board);
+        const canManageTopics = operatorMode && !isMobileLayout();
+        const heartLimit = liveHeartLimit();
+        const topicRows = renderPollTopics(board, canManageTopics);
+        const metricsView = renderPollMetrics(board, metrics, heartLimit);
         const metricEditor = !isMobileLayout() ? `
                 <p class="poll-q poll-settings-title">設定</p>
                 <label>評価項目設定（1〜5）</label>
@@ -1474,39 +1507,21 @@ function getAdminKeyCached() {
                     <button class="ghost" onclick="addMetricLabel()">項目追加</button>
                     <button class="primary" onclick="saveMetricLabels()">項目保存</button>
                   </div>` : '';
-        const metricTotal = metrics.reduce((sum, m) => sum + Number(m.totalHearts || 0), 0);
         const resultBlock = `
             <div class="poll-result-col">
               <div class="card poll-box">
                 <p class="poll-q">結果</p>
                 <div class="poll-list">
-                  <div class="poll-meta poll-result-summary" style="margin-bottom:10px; font-weight:700;">投票数：合計 ${metricTotal}票</div>
-                  ${metricResultRows}
+                  <div class="poll-meta poll-result-summary" style="margin-bottom:10px; font-weight:700;">投票数：合計 ${metricsView.totalHearts}票</div>
+                  ${metricsView.resultRows}
                 </div>
-                <div class="poll-meta poll-result-summary" style="margin-top:14px; margin-bottom:10px; font-weight:700;">次回テーマ：合計 ${Number(board.topicTotal || 0)}票</div>
+                <div class="poll-meta poll-result-summary" style="margin-top:14px; margin-bottom:10px; font-weight:700;">次回テーマ：合計 ${metricsView.topicTotal}票</div>
                 <div class="poll-list poll-topic-list">
                   ${topicRows || '<div class="muted-note">まだ投稿がありません。</div>'}
                 </div>
               </div>
             </div>`;
-        const inputBlock = `
-            <div class="poll-input-split">
-              <div class="poll-input-main">
-                <div class="card poll-box">
-                  <p class="poll-q">入力</p>
-                  <p class="poll-meta">ハートで評価をお願いします（ひとり${heartLimit}<span class="heart-mark" aria-hidden="true">♥︎</span>まで押せます）</p>
-                  ${metricInputRows}
-                  <div class="field">
-                    <label>聞きたいテーマ（記述式）</label>
-                    <textarea id="liveTopicInput" maxlength="300" placeholder="例）実践事例、運用フロー、失敗パターン" oninput="appState.livePollTopicDraft=this.value">${esc(appState.livePollTopicDraft)}</textarea>
-                    <div class="actions poll-topic-actions">
-                      <button class="ghost" onclick="submitLiveTopic()">送信</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              ${metricEditor ? `<div class="poll-input-editor"><div class="card poll-box">${metricEditor}</div></div>` : ''}
-            </div>`;
+        const inputBlock = renderPollComposer(metricsView, heartLimit, metricEditor);
         const isMobilePoll = isMobileLayout();
         return `
           <div class="poll-stack">
@@ -1805,6 +1820,70 @@ function getAdminKeyCached() {
           alert(e.message || 'アンケートデータのクリアに失敗しました');
         }
       }
+      function renderVoteHeader(poll, myVoteTotal, maxVotes, timerHtml) {
+        return `
+            <div class="vote-title-row">
+              <p class="poll-q vote-title-inline">${esc(poll.questionText || "ライブ投票")}</p>
+              ${timerHtml}
+            </div>
+            <div class="poll-meta vote-meta-sub">${renderVoteInfoText(poll, myVoteTotal, maxVotes)}</div>`;
+      }
+
+      function renderVoteOptions(rowModels, view) {
+        return rowModels.map((row, rankIdx) => {
+          const idx = row.idx;
+          const mine = view.myVotes.includes(idx);
+          const myCount = Number(view.myChoiceCounts[idx] || 0);
+          if (view.isMobileVote) {
+            return `
+              <div class="vote-row">
+                <div class="vote-head">
+                  <div class="vote-label">${esc(row.label)}</div>
+                  <button class="ghost vote-action-btn ${mine ? "active" : ""}" onclick="castVotePoll(${idx})" ${view.pollOpen ? '' : 'disabled'}>${view.pollOpen ? (mine ? "✅ 投票中" : "👍 投票") : "終了"}</button>
+                </div>
+                <div class="vote-row-meta">あなた ${myCount}票</div>
+              </div>`;
+          }
+          const c = row.count;
+          const width = view.leaderCount > 0 ? Math.max(0, Math.min(100, Math.round((c / view.leaderCount) * 100))) : 0;
+          const prevWidth = appState.votePrevWidthMap.has(idx) ? Number(appState.votePrevWidthMap.get(idx)) : width;
+          const isLeader = rankIdx === 0 && c > 0;
+          const prevRank = appState.votePrevRankMap.has(idx) ? Number(appState.votePrevRankMap.get(idx)) : rankIdx;
+          const rankDelta = prevRank - rankIdx;
+          const rankShiftPx = Math.max(-420, Math.min(420, rankDelta * 84));
+          const rankAnimClass = rankDelta !== 0 ? ' vote-row-rank-shift' : '';
+          return `
+            <div class="vote-row${rankAnimClass}" style="--rank-shift:${rankShiftPx}px;">
+              <div class="vote-head">
+                <div class="vote-label">${esc(row.label)}</div>
+                <button class="ghost vote-action-btn ${mine ? "active" : ""}" onclick="castVotePoll(${idx})" ${view.pollOpen ? '' : 'disabled'}>${view.pollOpen ? (mine ? "✅ 投票中" : "👍 投票") : "終了"}</button>
+              </div>
+              <div class="vote-bar-wrap"><div class="vote-bar vote-bar-anim" style="--vote-from:${prevWidth}%;--vote-to:${width}%"></div></div>
+              <div class="vote-row-meta">${c}票${isLeader && view.leaderDiff > 0 ? ` / 現在トップ` : ""}</div>
+            </div>`;
+        }).join("");
+      }
+
+      function renderVoteResult(rowsHtml, voteNavHtml) {
+        return `${voteNavHtml}<div class="vote-board">${rowsHtml}</div>`;
+      }
+
+      function renderVoteFooter(poll, canManage, pollOpen) {
+        const timerHtml = `<div class="vote-title-timer">${renderVoteTimerHtml(poll)}</div>`;
+        const actionHtml = canManage && pollOpen
+          ? `<div class="actions" style="margin-top:10px;justify-content:flex-end;">
+              <button class="ghost" onclick="appState.forceVoteComposer=true;renderPanel()">編集</button>
+              <button class="ghost" onclick="closeVotePoll()">投票終了</button>
+            </div>`
+          : (canManage && !pollOpen
+            ? `<div class="actions" style="margin-top:10px;justify-content:flex-end;">
+                <button class="ghost" onclick="appState.forceVoteComposer=true;renderPanel()">編集</button>
+                <button class="primary" onclick="openNewVoteComposer()" ${canCreateMoreVotePolls() ? '' : 'disabled'}>新規追加</button>
+              </div>`
+            : '');
+        return { timerHtml, actionHtml };
+      }
+
       function renderVotePanelHtml() {
         const poll = appState.currentVotePoll;
         const canManage = !isMobileLayout();
@@ -1872,24 +1951,15 @@ function getAdminKeyCached() {
               ${canCreateMoreVotePolls() ? '' : `<div class="poll-meta" style="margin-top:8px;">上限に達したため、新規作成はできません</div>`}
             </div>`;
         }
+
         const options = Array.isArray(poll.options) ? poll.options : [];
         const counts = Array.isArray(poll.counts) ? poll.counts : [];
         const isMobileVote = isMobileLayout();
-        const baseModels = options.map((label, idx) => ({
-          idx,
-          label,
-          count: Number(counts[idx] || 0),
-        }));
+        const baseModels = options.map((label, idx) => ({ idx, label, count: Number(counts[idx] || 0) }));
         const rowModels = isMobileVote
           ? baseModels
-          : baseModels.slice().sort((a, b) => {
-              if (b.count !== a.count) return b.count - a.count;
-              return a.idx - b.idx;
-            });
-        const sortedByCount = baseModels.slice().sort((a, b) => {
-          if (b.count !== a.count) return b.count - a.count;
-          return a.idx - b.idx;
-        });
+          : baseModels.slice().sort((a, b) => (b.count !== a.count ? b.count - a.count : a.idx - b.idx));
+        const sortedByCount = baseModels.slice().sort((a, b) => (b.count !== a.count ? b.count - a.count : a.idx - b.idx));
         const leaderCount = sortedByCount.length ? sortedByCount[0].count : 0;
         const leaderDiff = Math.max(0, leaderCount - (sortedByCount[1] ? sortedByCount[1].count : 0));
         const myVotes = Array.isArray(poll.myVotes) ? poll.myVotes : [];
@@ -1897,54 +1967,18 @@ function getAdminKeyCached() {
         const myVoteTotal = Number(poll.myVoteTotal || 0);
         const maxVotes = Number(poll.maxVotesPerUser || 0);
         const pollOpen = String(poll.status || 'OPEN') === 'OPEN';
+        const footerView = renderVoteFooter(poll, canManage, pollOpen);
         if (isMobileVote) {
           appState.votePrevRankMap = new Map();
           appState.votePrevWidthMap = new Map();
-          const mobileRows = rowModels.map((row) => {
-            const idx = row.idx;
-            const mine = myVotes.includes(idx);
-            const myCount = Number(myChoiceCounts[idx] || 0);
-            return `
-              <div class="vote-row">
-                <div class="vote-head">
-                  <div class="vote-label">${esc(row.label)}</div>
-                  <button class="ghost vote-action-btn ${mine ? "active" : ""}" onclick="castVotePoll(${idx})" ${pollOpen ? '' : 'disabled'}>${pollOpen ? (mine ? "✅ 投票中" : "👍 投票") : "終了"}</button>
-                </div>
-                <div class="vote-row-meta">あなた ${myCount}票</div>
-              </div>`;
-          }).join("");
+          const rows = renderVoteOptions(rowModels, { isMobileVote, myVotes, myChoiceCounts, pollOpen, leaderCount, leaderDiff });
           return `
             <div class="card poll-box">
-              <div class="vote-title-row">
-                <p class="poll-q vote-title-inline">${esc(poll.questionText || "ライブ投票")}</p>
-                <div class="vote-title-timer">${renderVoteTimerHtml(poll)}</div>
-              </div>
-              <div class="poll-meta vote-meta-sub">${renderVoteInfoText(poll, myVoteTotal, maxVotes)}</div>
-              <div class="vote-board">${mobileRows}</div>
+              ${renderVoteHeader(poll, myVoteTotal, maxVotes, footerView.timerHtml)}
+              ${renderVoteResult(rows, '')}
             </div>`;
         }
-        const rankStepPx = isMobileVote ? 0 : 84;
-        const rows = rowModels.map((row, rankIdx) => {
-          const idx = row.idx;
-          const c = row.count;
-          const width = leaderCount > 0 ? Math.max(0, Math.min(100, Math.round((c / leaderCount) * 100))) : 0;
-          const prevWidth = appState.votePrevWidthMap.has(idx) ? Number(appState.votePrevWidthMap.get(idx)) : width;
-          const mine = myVotes.includes(idx);
-          const isLeader = !isMobileVote && rankIdx === 0 && c > 0;
-          const prevRank = appState.votePrevRankMap.has(idx) ? Number(appState.votePrevRankMap.get(idx)) : rankIdx;
-          const rankDelta = prevRank - rankIdx;
-          const rankShiftPx = Math.max(-420, Math.min(420, rankDelta * rankStepPx));
-          const rankAnimClass = !isMobileVote && rankDelta !== 0 ? ' vote-row-rank-shift' : '';
-          return `
-            <div class="vote-row${rankAnimClass}" style="--rank-shift:${rankShiftPx}px;">
-              <div class="vote-head">
-                <div class="vote-label">${esc(row.label)}</div>
-                <button class="ghost vote-action-btn ${mine ? "active" : ""}" onclick="castVotePoll(${idx})" ${pollOpen ? '' : 'disabled'}>${pollOpen ? (mine ? "✅ 投票中" : "👍 投票") : "終了"}</button>
-              </div>
-              <div class="vote-bar-wrap"><div class="vote-bar vote-bar-anim" style="--vote-from:${prevWidth}%;--vote-to:${width}%"></div></div>
-              <div class="vote-row-meta">${c}票${isLeader && leaderDiff > 0 ? ` / 現在トップ` : ""}</div>
-            </div>`;
-        }).join("");
+        const rows = renderVoteOptions(rowModels, { isMobileVote, myVotes, myChoiceCounts, pollOpen, leaderCount, leaderDiff });
         appState.votePrevRankMap = new Map(rowModels.map((row, rankIdx) => [row.idx, rankIdx]));
         appState.votePrevWidthMap = new Map(rowModels.map((row) => {
           const width = leaderCount > 0 ? Math.max(0, Math.min(100, Math.round((row.count / leaderCount) * 100))) : 0;
@@ -1952,21 +1986,9 @@ function getAdminKeyCached() {
         }));
         return `
           <div class="card poll-box">
-            <div class="vote-title-row">
-              <p class="poll-q vote-title-inline">${esc(poll.questionText || "ライブ投票")}</p>
-              <div class="vote-title-timer">${renderVoteTimerHtml(poll)}</div>
-            </div>
-            <div class="poll-meta vote-meta-sub">${renderVoteInfoText(poll, myVoteTotal, maxVotes)}</div>
-            ${voteNavHtml}
-            <div class="vote-board">${rows}</div>
-            ${canManage && pollOpen ? `<div class="actions" style="margin-top:10px;justify-content:flex-end;">
-              <button class="ghost" onclick="appState.forceVoteComposer=true;renderPanel()">編集</button>
-              <button class="ghost" onclick="closeVotePoll()">投票終了</button>
-            </div>` : ""}
-            ${canManage && !pollOpen ? `<div class="actions" style="margin-top:10px;justify-content:flex-end;">
-              <button class="ghost" onclick="appState.forceVoteComposer=true;renderPanel()">編集</button>
-              <button class="primary" onclick="openNewVoteComposer()" ${canCreateMoreVotePolls() ? '' : 'disabled'}>新規追加</button>
-            </div>` : ""}
+            ${renderVoteHeader(poll, myVoteTotal, maxVotes, footerView.timerHtml)}
+            ${renderVoteResult(rows, voteNavHtml)}
+            ${footerView.actionHtml}
           </div>`;
       }
 
