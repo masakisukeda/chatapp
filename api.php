@@ -25,6 +25,7 @@ const LEGACY_DEFAULT_REQUEST_TEXT = '運営側へのリクエスト';
 const DEFAULT_REQUEST_AUTHOR = '__system__';
 const POLL_MAX_VOTES_PER_USER = 0; // 0 = unlimited
 const LIVE_POLL_MAX_HEARTS_PER_USER = 10;
+const LIVE_POLL_MAX_HEARTS_PER_USER_MOBILE = 5;
 const VOTE_POLL_LIMIT_PER_SESSION = 3;
 
 try {
@@ -1308,6 +1309,7 @@ function submitLivePoll(PDO $pdo, array $payload): array
     $pollKindRaw = sanitize($payload['pollKind'] ?? '', 20);
     $pollKind = normalizeLiveMetricKind($pollKindRaw);
     $topicText = sanitize($payload['topicText'] ?? '', 300);
+    $clientLayout = sanitize($payload['clientLayout'] ?? '', 20);
     if ($voterToken === '') {
         throw new RuntimeException('voterToken が必要です');
     }
@@ -1327,9 +1329,12 @@ function submitLivePoll(PDO $pdo, array $payload): array
             ':poll_kind' => $pollKind,
             ':voter_token' => $voterToken,
         ]);
+        $heartLimit = strtoupper($clientLayout) === 'MOBILE'
+            ? LIVE_POLL_MAX_HEARTS_PER_USER_MOBILE
+            : LIVE_POLL_MAX_HEARTS_PER_USER;
         $mine = toInt($countMine['c'] ?? 0, 0);
-        if ($mine >= LIVE_POLL_MAX_HEARTS_PER_USER) {
-            throw new RuntimeException('1人' . (string) LIVE_POLL_MAX_HEARTS_PER_USER . '回までです');
+        if ($mine >= $heartLimit) {
+            throw new RuntimeException('1人' . (string) $heartLimit . '回までです');
         }
         execStmt($pdo, 'INSERT INTO live_poll_reactions (session_code, poll_kind, voter_token, created_at) VALUES (:session_code, :poll_kind, :voter_token, :created_at)', [
             ':session_code' => $sessionCode,

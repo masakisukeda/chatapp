@@ -136,6 +136,10 @@ const ADMIN_ACTIONS = new Set([
         return typeof window !== 'undefined' && window.matchMedia('(max-width: 700px)').matches;
       }
 
+      function liveHeartLimit() {
+        return isMobileLayout() ? 5 : 10;
+      }
+
       function readStateKey() {
         return `${READ_STATE_PREFIX}${SESSION}`;
       }
@@ -1293,9 +1297,8 @@ function getAdminKeyCached() {
       }
 
       async function submitLiveHeart(kind) {
-        const isMobile = isMobileLayout();
-        const heartLimit = isMobile ? 5 : 10;
-        if (isMobile) {
+        const heartLimit = liveHeartLimit();
+        if (isMobileLayout()) {
           const metrics = getBoardMetrics(currentPoll || {});
           const target = metrics.find((m) => String(m.kind) === String(kind));
           const mine = Number((target && target.myHearts) || 0);
@@ -1305,7 +1308,12 @@ function getAdminKeyCached() {
           }
         }
         try {
-          await api('submitLivePoll', { sessionCode: SESSION, pollKind: kind, voterToken });
+          await api('submitLivePoll', {
+            sessionCode: SESSION,
+            pollKind: kind,
+            voterToken,
+            clientLayout: isMobileLayout() ? 'mobile' : 'desktop',
+          });
           await loadPoll();
           triggerFastSync();
         } catch (e) {
@@ -1438,7 +1446,7 @@ function getAdminKeyCached() {
                     <div class="poll-result-value">${heartsCompact(m.totalHearts)}<span class="poll-heart-count">${Number(m.totalHearts || 0)}票</span></div>
                   </div>
         `).join('');
-        const heartLimit = isMobileLayout() ? 5 : 10;
+        const heartLimit = liveHeartLimit();
         const metricInputRows = metrics.map((m) => {
           const myHearts = Number(m.myHearts || 0);
           const atLimit = myHearts >= heartLimit;
