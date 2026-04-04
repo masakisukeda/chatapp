@@ -260,6 +260,15 @@
 
       /* Mobile: align submit-like actions to the right edge */
       @media (max-width: 700px) {
+        .q-side-audience,
+        .reply-actions-audience {
+          width: 100%;
+          justify-content: flex-end;
+        }
+        .q-side-audience .like-count-btn,
+        .reply-actions-audience .like-count-btn {
+          margin-left: auto;
+        }
         .reply-form {
           grid-template-columns: 1fr auto;
           align-items: center;
