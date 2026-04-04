@@ -22,33 +22,40 @@
       const operatorMode = true;
       let sessionConfig = { anonymousOnly: true, tipUrl: '', surveyUrl: String(localStorage.getItem(surveyUrlKey()) || '').trim(), metricLabels: ['満足度', '理解度'] };
       let metricLabelDraft = ['満足度', '理解度'];
-      let currentQuestions = [];
-      let currentPoll = null;
-      let currentVotePoll = null;
-      let votePrevRankMap = new Map();
-      let votePrevWidthMap = new Map();
-      let voteLoadError = '';
-      let forceVoteComposer = false;
-      let voteDraftQuestion = '';
-      let pollDraftQuestion = '';
-      let pollDraftOptionList = [];
-      let voteDraftOptionList = ['選択肢A', '選択肢B'];
-      let voteDraftTargetVotes = 50;
-      let voteDraftMaxVotesPerUser = 0;
-      let voteDraftTimerMinutes = 0;
-      let votePollCount = 0;
-      let votePollLimit = 3;
-      let votePollList = [];
-      let selectedVotePollId = '';
-      let pollDraftType = 'CHOICE';
+      const appState = {
+        currentQuestions: [],
+        currentPoll: null,
+        currentVotePoll: null,
+        votePrevRankMap: new Map(),
+        votePrevWidthMap: new Map(),
+        voteLoadError: '',
+        forceVoteComposer: false,
+        voteDraftQuestion: '',
+        pollDraftQuestion: '',
+        pollDraftOptionList: [],
+        voteDraftOptionList: ['選択肢A', '選択肢B'],
+        voteDraftTargetVotes: 50,
+        voteDraftMaxVotesPerUser: 0,
+        voteDraftTimerMinutes: 0,
+        votePollCount: 0,
+        votePollLimit: 3,
+        votePollList: [],
+        selectedVotePollId: '',
+        pollDraftType: 'CHOICE',
+        livePollTopicDraft: '',
+        unreadOnly: true,
+        screenSortMode: 'new',
+        showStartGuide: false,
+        readQuestionIds: new Set(),
+        serverRevision: 0,
+        latestLoadSeq: 0,
+        isLoading: false,
+        turboUntil: 0,
+        voteCountdownRemainingSec: -1,
+      };
       let pollDraftTextPlaceholder = '';
-      let livePollTopicDraft = '';
       let lastPollRenderKey = '';
-      let unreadOnly = true;
-      let screenSortMode = 'new';
-      let showStartGuide = false;
       let sessionListCache = ['webinar-2026'];
-      let readQuestionIds = new Set();
       const votePending = new Set();
       const replyVotePending = new Set();
       const pendingQuestions = new Map();
@@ -79,17 +86,12 @@ const ADMIN_ACTIONS = new Set([
       const TURBO_WINDOW_MS = 8000;
       const FAST_SYNC_MS = 900;
       const FAST_SYNC_TICKS = 1;
-      let serverRevision = 0;
-      let latestLoadSeq = 0;
-      let isLoading = false;
-      let turboUntil = 0;
       let fastSyncToken = 0;
       let lastErrorAt = 0;
       let pollTimer = null;
       let lastPollTouchEndAt = 0;
       let voteDraftSaveTimer = null;
       let voteCountdownTimer = null;
-      let voteCountdownRemainingSec = -1;
       let replyModalQuestionId = '';
 
       const voterTokenKey = () => `voterToken:${SESSION}`;
@@ -211,13 +213,13 @@ const ADMIN_ACTIONS = new Set([
           clearInterval(voteCountdownTimer);
           voteCountdownTimer = null;
         }
-        voteCountdownRemainingSec = -1;
+        appState.voteCountdownRemainingSec = -1;
       }
 
       function paintVoteCountdown() {
         const labels = document.querySelectorAll('[data-vote-countdown]');
         if (!labels.length) return;
-        const text = formatRemainingTime(voteCountdownRemainingSec);
+        const text = formatRemainingTime(appState.voteCountdownRemainingSec);
         labels.forEach((el) => {
           el.textContent = text;
         });
@@ -225,15 +227,15 @@ const ADMIN_ACTIONS = new Set([
 
       function startVoteCountdownTicker() {
         stopVoteCountdownTicker();
-        if (VIEW !== 'vote' || !currentVotePoll) return;
-        const timerMinutes = Number(currentVotePoll.timerMinutes || 0);
+        if (VIEW !== 'vote' || !appState.currentVotePoll) return;
+        const timerMinutes = Number(appState.currentVotePoll.timerMinutes || 0);
         if (timerMinutes <= 0) return;
-        voteCountdownRemainingSec = getVoteRemainingSeconds(currentVotePoll);
+        appState.voteCountdownRemainingSec = getVoteRemainingSeconds(appState.currentVotePoll);
         paintVoteCountdown();
         voteCountdownTimer = setInterval(() => {
-          voteCountdownRemainingSec = Math.max(0, voteCountdownRemainingSec - 1);
+          appState.voteCountdownRemainingSec = Math.max(0, appState.voteCountdownRemainingSec - 1);
           paintVoteCountdown();
-          if (voteCountdownRemainingSec <= 0) {
+          if (appState.voteCountdownRemainingSec <= 0) {
             stopVoteCountdownTicker();
             loadVotePoll();
           }
@@ -242,12 +244,12 @@ const ADMIN_ACTIONS = new Set([
 
       function saveVoteDraft() {
         try {
-          const q = String(voteDraftQuestion || '').slice(0, 200);
-          const optsRaw = Array.isArray(voteDraftOptionList) ? voteDraftOptionList : [];
+          const q = String(appState.voteDraftQuestion || '').slice(0, 200);
+          const optsRaw = Array.isArray(appState.voteDraftOptionList) ? appState.voteDraftOptionList : [];
           const opts = optsRaw.map((x) => String(x || '').slice(0, 80));
-          const targetVotes = Math.max(10, Math.min(1000, Number(voteDraftTargetVotes || 50) || 50));
-          const maxVotesPerUser = normalizeVoteDraftMaxVotes(voteDraftMaxVotesPerUser);
-          const timerMinutes = normalizeVoteDraftTimerMinutes(voteDraftTimerMinutes);
+          const targetVotes = Math.max(10, Math.min(1000, Number(appState.voteDraftTargetVotes || 50) || 50));
+          const maxVotesPerUser = normalizeVoteDraftMaxVotes(appState.voteDraftMaxVotesPerUser);
+          const timerMinutes = normalizeVoteDraftTimerMinutes(appState.voteDraftTimerMinutes);
           localStorage.setItem(voteDraftKey(), JSON.stringify({ q, opts, targetVotes, maxVotesPerUser, timerMinutes }));
         } catch (e) {}
 
@@ -257,22 +259,22 @@ const ADMIN_ACTIONS = new Set([
             await api('saveVoteDraft', {
               sessionCode: SESSION,
               authorToken,
-              questionText: String(voteDraftQuestion || '').slice(0, 200),
-              options: (Array.isArray(voteDraftOptionList) ? voteDraftOptionList : []).map((x) => String(x || '').slice(0, 80)),
-              targetVotes: Math.max(10, Math.min(1000, Number(voteDraftTargetVotes || 50) || 50)),
-              maxVotesPerUser: normalizeVoteDraftMaxVotes(voteDraftMaxVotesPerUser),
-              timerMinutes: normalizeVoteDraftTimerMinutes(voteDraftTimerMinutes),
+              questionText: String(appState.voteDraftQuestion || '').slice(0, 200),
+              options: (Array.isArray(appState.voteDraftOptionList) ? appState.voteDraftOptionList : []).map((x) => String(x || '').slice(0, 80)),
+              targetVotes: Math.max(10, Math.min(1000, Number(appState.voteDraftTargetVotes || 50) || 50)),
+              maxVotesPerUser: normalizeVoteDraftMaxVotes(appState.voteDraftMaxVotesPerUser),
+              timerMinutes: normalizeVoteDraftTimerMinutes(appState.voteDraftTimerMinutes),
             });
           } catch (e) {}
         }, 300);
       }
 
       async function loadVoteDraft() {
-        voteDraftQuestion = '';
-        voteDraftOptionList = ['選択肢A', '選択肢B'];
-        voteDraftTargetVotes = 50;
-        voteDraftMaxVotesPerUser = 0;
-        voteDraftTimerMinutes = 0;
+        appState.voteDraftQuestion = '';
+        appState.voteDraftOptionList = ['選択肢A', '選択肢B'];
+        appState.voteDraftTargetVotes = 50;
+        appState.voteDraftMaxVotesPerUser = 0;
+        appState.voteDraftTimerMinutes = 0;
 
         try {
           const raw = localStorage.getItem(voteDraftKey());
@@ -284,17 +286,17 @@ const ADMIN_ACTIONS = new Set([
             const tv = Math.max(10, Math.min(1000, Number(parsed && parsed.targetVotes || 50) || 50));
             const mv = normalizeVoteDraftMaxVotes(parsed && parsed.maxVotesPerUser);
             const tm = normalizeVoteDraftTimerMinutes(parsed && parsed.timerMinutes);
-            voteDraftQuestion = q;
-            voteDraftOptionList = cleaned.length >= 2 ? cleaned : ['選択肢A', '選択肢B'];
-            voteDraftTargetVotes = tv;
-            voteDraftMaxVotesPerUser = mv;
-            voteDraftTimerMinutes = tm;
+            appState.voteDraftQuestion = q;
+            appState.voteDraftOptionList = cleaned.length >= 2 ? cleaned : ['選択肢A', '選択肢B'];
+            appState.voteDraftTargetVotes = tv;
+            appState.voteDraftMaxVotesPerUser = mv;
+            appState.voteDraftTimerMinutes = tm;
           }
         } catch (e) {
-          voteDraftQuestion = '';
-          voteDraftOptionList = ['選択肢A', '選択肢B'];
-          voteDraftMaxVotesPerUser = 0;
-          voteDraftTimerMinutes = 0;
+          appState.voteDraftQuestion = '';
+          appState.voteDraftOptionList = ['選択肢A', '選択肢B'];
+          appState.voteDraftMaxVotesPerUser = 0;
+          appState.voteDraftTimerMinutes = 0;
         }
 
         try {
@@ -308,13 +310,13 @@ const ADMIN_ACTIONS = new Set([
             const tv = Math.max(10, Math.min(1000, Number(draft.targetVotes || 50) || 50));
             const mv = normalizeVoteDraftMaxVotes(draft.maxVotesPerUser);
             const tm = normalizeVoteDraftTimerMinutes(draft.timerMinutes);
-            voteDraftQuestion = q;
-            voteDraftOptionList = cleaned.length >= 2 ? cleaned : ['選択肢A', '選択肢B'];
-            voteDraftTargetVotes = tv;
-            voteDraftMaxVotesPerUser = mv;
-            voteDraftTimerMinutes = tm;
+            appState.voteDraftQuestion = q;
+            appState.voteDraftOptionList = cleaned.length >= 2 ? cleaned : ['選択肢A', '選択肢B'];
+            appState.voteDraftTargetVotes = tv;
+            appState.voteDraftMaxVotesPerUser = mv;
+            appState.voteDraftTimerMinutes = tm;
             try {
-              localStorage.setItem(voteDraftKey(), JSON.stringify({ q: voteDraftQuestion, opts: voteDraftOptionList, targetVotes: voteDraftTargetVotes, maxVotesPerUser: voteDraftMaxVotesPerUser, timerMinutes: voteDraftTimerMinutes }));
+              localStorage.setItem(voteDraftKey(), JSON.stringify({ q: appState.voteDraftQuestion, opts: appState.voteDraftOptionList, targetVotes: appState.voteDraftTargetVotes, maxVotesPerUser: appState.voteDraftMaxVotesPerUser, timerMinutes: appState.voteDraftTimerMinutes }));
             } catch (e) {}
           }
         } catch (e) {}
@@ -325,12 +327,12 @@ const ADMIN_ACTIONS = new Set([
       }
 
       function updateStartGuideVisibility() {
-        showStartGuide = !localStorage.getItem(startGuideKey());
+        appState.showStartGuide = !localStorage.getItem(startGuideKey());
       }
 
       function dismissStartGuide(openPost) {
         localStorage.setItem(startGuideKey(), '1');
-        showStartGuide = false;
+        appState.showStartGuide = false;
         renderPanel();
         if (openPost) openQuestionModal();
       }
@@ -353,31 +355,31 @@ const ADMIN_ACTIONS = new Set([
           const raw = localStorage.getItem(readStateKey());
           const arr = raw ? JSON.parse(raw) : [];
           if (Array.isArray(arr)) {
-            readQuestionIds = new Set(arr.map((x) => String(x)));
+            appState.readQuestionIds = new Set(arr.map((x) => String(x)));
             return;
           }
         } catch (e) {}
-        readQuestionIds = new Set();
+        appState.readQuestionIds = new Set();
       }
 
       function saveReadState() {
-        localStorage.setItem(readStateKey(), JSON.stringify(Array.from(readQuestionIds)));
+        localStorage.setItem(readStateKey(), JSON.stringify(Array.from(appState.readQuestionIds)));
       }
 
       function isQuestionRead(id) {
-        return readQuestionIds.has(String(id));
+        return appState.readQuestionIds.has(String(id));
       }
 
       function setQuestionRead(id, read) {
         const key = String(id);
-        if (read) readQuestionIds.add(key);
-        else readQuestionIds.delete(key);
+        if (read) appState.readQuestionIds.add(key);
+        else appState.readQuestionIds.delete(key);
         saveReadState();
       }
 
       function toggleQuestionRead(id) {
         setQuestionRead(id, !isQuestionRead(id));
-        renderList(currentQuestions);
+        renderList(appState.currentQuestions);
       }
 
       function defaultSessions() {
@@ -514,10 +516,10 @@ function getAdminKeyCached() {
       function syncVoteTargetMenuUi() {
         const input = document.getElementById('voteTargetInput');
         if (!input) return;
-        const fromPoll = currentVotePoll && currentVotePoll.targetVotes != null ? Number(currentVotePoll.targetVotes) : NaN;
+        const fromPoll = appState.currentVotePoll && appState.currentVotePoll.targetVotes != null ? Number(appState.currentVotePoll.targetVotes) : NaN;
         const raw = Number.isFinite(fromPoll)
           ? fromPoll
-          : Math.max(10, Math.min(1000, Number(voteDraftTargetVotes || 50) || 50));
+          : Math.max(10, Math.min(1000, Number(appState.voteDraftTargetVotes || 50) || 50));
         const n = Math.max(10, Math.min(1000, raw));
         input.value = String(n);
       }
@@ -526,13 +528,13 @@ function getAdminKeyCached() {
         const input = document.getElementById('voteTargetInput');
         if (!input) return;
         const n = Math.max(10, Math.min(1000, Number(input.value || 50) || 50));
-        voteDraftTargetVotes = n;
+        appState.voteDraftTargetVotes = n;
         saveVoteDraft();
         try {
           const res = await api('updatePollTarget', { sessionCode: SESSION, targetVotes: n, voterToken });
           const updated = res && res.poll ? res.poll : null;
           if (updated) {
-            currentVotePoll = updated;
+            appState.currentVotePoll = updated;
             if (VIEW === 'vote') renderPanel();
           }
           syncVoteTargetMenuUi();
@@ -543,14 +545,14 @@ function getAdminKeyCached() {
       }
 
       async function saveVoteTargetQuick() {
-        const n = Math.max(10, Math.min(1000, Number(voteDraftTargetVotes || 50) || 50));
-        voteDraftTargetVotes = n;
+        const n = Math.max(10, Math.min(1000, Number(appState.voteDraftTargetVotes || 50) || 50));
+        appState.voteDraftTargetVotes = n;
         saveVoteDraft();
         try {
           const res = await api('updatePollTarget', { sessionCode: SESSION, targetVotes: n, voterToken });
           const updated = res && res.poll ? res.poll : null;
           if (updated) {
-            currentVotePoll = updated;
+            appState.currentVotePoll = updated;
             if (VIEW === 'vote') renderPanel();
             alert(`投票目標を ${n}票 に更新しました`);
           } else {
@@ -863,7 +865,7 @@ function getAdminKeyCached() {
       }
 
       async function updateQuestionMeta(questionId, patch) {
-        const target = currentQuestions.find((q) => q.id === questionId);
+        const target = appState.currentQuestions.find((q) => q.id === questionId);
         if (!target) return;
         const nextStatus = patch.status || target.status || 'OPEN';
         const nextPinned = patch.pinned == null ? !!target.pinned : !!patch.pinned;
@@ -956,8 +958,8 @@ function getAdminKeyCached() {
           html = '<button class="ghost" onclick="clearQuestionsData()">投稿リセット</button>';
         } else if (VIEW === 'screen') {
           html = `
-            <button class="ghost" onclick="toggleUnreadOnly()">${unreadOnly ? '全件表示' : '未読のみ表示'}</button>
-            <button class="ghost" onclick="toggleScreenSortMode()">${screenSortMode === 'new' ? '人気順' : '新着順'}</button>
+            <button class="ghost" onclick="toggleUnreadOnly()">${appState.unreadOnly ? '全件表示' : '未読のみ表示'}</button>
+            <button class="ghost" onclick="toggleScreenSortMode()">${appState.screenSortMode === 'new' ? '人気順' : '新着順'}</button>
             <button class="ghost" onclick="clearReadState()">既読を全解除</button>
           `;
         } else if (VIEW === 'poll') {
@@ -987,25 +989,25 @@ function getAdminKeyCached() {
           replies: [],
         };
         pendingQuestions.set(tempId, optimistic);
-        currentQuestions = [optimistic, ...currentQuestions];
-        renderList(currentQuestions);
+        appState.currentQuestions = [optimistic, ...appState.currentQuestions];
+        renderList(appState.currentQuestions);
         document.getElementById('modalQuestion').value = '';
         closeQuestionModal();
 
         try {
           const res = await api('submitQuestion', { sessionCode: SESSION, displayName, questionText, authorToken });
-          currentQuestions = currentQuestions.map((q) => (q.id === tempId ? { ...q, id: res.id } : q));
+          appState.currentQuestions = appState.currentQuestions.map((q) => (q.id === tempId ? { ...q, id: res.id } : q));
           const p = pendingQuestions.get(tempId);
           if (p) {
             pendingQuestions.delete(tempId);
             pendingQuestions.set(res.id, { ...p, id: res.id });
           }
-          renderList(currentQuestions);
+          renderList(appState.currentQuestions);
           triggerFastSync();
         } catch (e) {
           pendingQuestions.delete(tempId);
-          currentQuestions = currentQuestions.filter((q) => q.id !== tempId);
-          renderList(currentQuestions);
+          appState.currentQuestions = appState.currentQuestions.filter((q) => q.id !== tempId);
+          renderList(appState.currentQuestions);
           alert(e.message || '送信失敗');
         }
       }
@@ -1013,21 +1015,21 @@ function getAdminKeyCached() {
       async function vote(id) {
         if (votePending.has(id)) return;
         votePending.add(id);
-        const before = currentQuestions.slice();
-        currentQuestions = currentQuestions.map((q) => (q.id === id ? { ...q, votes: q.votes + 1 } : q));
-        renderList(currentQuestions);
+        const before = appState.currentQuestions.slice();
+        appState.currentQuestions = appState.currentQuestions.map((q) => (q.id === id ? { ...q, votes: q.votes + 1 } : q));
+        renderList(appState.currentQuestions);
         try {
           const res = await api('voteQuestion', { questionId: id, voterToken });
           if (res && res.duplicated) {
-            currentQuestions = before;
-            renderList(currentQuestions);
+            appState.currentQuestions = before;
+            renderList(appState.currentQuestions);
             alert('この投稿にはすでに♥︎しています');
             return;
           }
           triggerFastSync();
         } catch (e) {
-          currentQuestions = before;
-          renderList(currentQuestions);
+          appState.currentQuestions = before;
+          renderList(appState.currentQuestions);
           alert(e.message || '投票失敗');
         } finally {
           votePending.delete(id);
@@ -1035,9 +1037,9 @@ function getAdminKeyCached() {
       }
 
       async function deleteMyQuestion(id) {
-        const before = currentQuestions.slice();
-        currentQuestions = currentQuestions.filter((q) => q.id !== id);
-        renderList(currentQuestions);
+        const before = appState.currentQuestions.slice();
+        appState.currentQuestions = appState.currentQuestions.filter((q) => q.id !== id);
+        renderList(appState.currentQuestions);
         try {
           const req = { questionId: id, authorToken };
           if (!isMobileLayout()) {
@@ -1047,8 +1049,8 @@ function getAdminKeyCached() {
           await api('deleteMyQuestion', req);
           triggerFastSync();
         } catch (e) {
-          currentQuestions = before;
-          renderList(currentQuestions);
+          appState.currentQuestions = before;
+          renderList(appState.currentQuestions);
           alert(e.message || '削除失敗');
         }
       }
@@ -1056,25 +1058,25 @@ function getAdminKeyCached() {
       async function voteReply(questionId, replyId) {
         if (replyVotePending.has(replyId)) return;
         replyVotePending.add(replyId);
-        const before = currentQuestions.slice();
-        currentQuestions = currentQuestions.map((q) => {
+        const before = appState.currentQuestions.slice();
+        appState.currentQuestions = appState.currentQuestions.map((q) => {
           if (q.id !== questionId) return q;
           const replies = (q.replies || []).map((r) => (r.id === replyId ? { ...r, votes: (r.votes || 0) + 1 } : r));
           return { ...q, replies };
         });
-        renderList(currentQuestions);
+        renderList(appState.currentQuestions);
         try {
           const res = await api('voteReply', { replyId, voterToken });
           if (res && res.duplicated) {
-            currentQuestions = before;
-            renderList(currentQuestions);
+            appState.currentQuestions = before;
+            renderList(appState.currentQuestions);
             alert('この返信にはすでに♥︎しています');
             return;
           }
           triggerFastSync();
         } catch (e) {
-          currentQuestions = before;
-          renderList(currentQuestions);
+          appState.currentQuestions = before;
+          renderList(appState.currentQuestions);
           alert(e.message || '返信いいね失敗');
         } finally {
           replyVotePending.delete(replyId);
@@ -1082,12 +1084,12 @@ function getAdminKeyCached() {
       }
 
       async function deleteMyReply(questionId, replyId) {
-        const before = currentQuestions.slice();
-        currentQuestions = currentQuestions.map((q) => {
+        const before = appState.currentQuestions.slice();
+        appState.currentQuestions = appState.currentQuestions.map((q) => {
           if (q.id !== questionId) return q;
           return { ...q, replies: (q.replies || []).filter((r) => r.id !== replyId) };
         });
-        renderList(currentQuestions);
+        renderList(appState.currentQuestions);
         try {
           const req = { replyId, authorToken };
           if (!isMobileLayout()) {
@@ -1097,14 +1099,14 @@ function getAdminKeyCached() {
           await api('deleteMyReply', req);
           triggerFastSync();
         } catch (e) {
-          currentQuestions = before;
-          renderList(currentQuestions);
+          appState.currentQuestions = before;
+          renderList(appState.currentQuestions);
           alert(e.message || '返信削除失敗');
         }
       }
 
       async function editQuestionAsAdmin(questionId) {
-        const target = currentQuestions.find((q) => q.id === questionId);
+        const target = appState.currentQuestions.find((q) => q.id === questionId);
         if (!target) return;
         const currentText = String(target.questionText || '');
         const raw = window.prompt('投稿内容を編集してください', currentText);
@@ -1116,21 +1118,21 @@ function getAdminKeyCached() {
         }
         if (nextText === currentText) return;
 
-        const before = currentQuestions.slice();
-        currentQuestions = currentQuestions.map((q) => (q.id === questionId ? { ...q, questionText: nextText } : q));
-        renderList(currentQuestions);
+        const before = appState.currentQuestions.slice();
+        appState.currentQuestions = appState.currentQuestions.map((q) => (q.id === questionId ? { ...q, questionText: nextText } : q));
+        renderList(appState.currentQuestions);
         try {
           await api('editQuestion', { questionId, questionText: nextText });
           triggerFastSync();
         } catch (e) {
-          currentQuestions = before;
-          renderList(currentQuestions);
+          appState.currentQuestions = before;
+          renderList(appState.currentQuestions);
           alert(e.message || '投稿編集失敗');
         }
       }
 
       async function editReplyAsAdmin(questionId, replyId) {
-        const targetQuestion = currentQuestions.find((q) => q.id === questionId);
+        const targetQuestion = appState.currentQuestions.find((q) => q.id === questionId);
         if (!targetQuestion) return;
         const replies = Array.isArray(targetQuestion.replies) ? targetQuestion.replies : [];
         const targetReply = replies.find((r) => r.id === replyId);
@@ -1145,19 +1147,19 @@ function getAdminKeyCached() {
         }
         if (nextText === currentText) return;
 
-        const before = currentQuestions.slice();
-        currentQuestions = currentQuestions.map((q) => {
+        const before = appState.currentQuestions.slice();
+        appState.currentQuestions = appState.currentQuestions.map((q) => {
           if (q.id !== questionId) return q;
           const nextReplies = (q.replies || []).map((r) => (r.id === replyId ? { ...r, replyText: nextText } : r));
           return { ...q, replies: nextReplies };
         });
-        renderList(currentQuestions);
+        renderList(appState.currentQuestions);
         try {
           await api('editReply', { replyId, replyText: nextText });
           triggerFastSync();
         } catch (e) {
-          currentQuestions = before;
-          renderList(currentQuestions);
+          appState.currentQuestions = before;
+          renderList(appState.currentQuestions);
           alert(e.message || 'コメント編集失敗');
         }
       }
@@ -1169,7 +1171,7 @@ function getAdminKeyCached() {
         setDisplayName(name);
         const tempId = `temp-r-${Date.now()}`;
 
-        const before = currentQuestions.slice();
+        const before = appState.currentQuestions.slice();
         const optimisticReply = {
           id: tempId,
           createdAt: new Date().toISOString(),
@@ -1179,13 +1181,13 @@ function getAdminKeyCached() {
           isMine: true,
         };
         pendingReplies.set(tempId, { ...optimisticReply, questionId });
-        currentQuestions = currentQuestions.map((q) => {
+        appState.currentQuestions = appState.currentQuestions.map((q) => {
           if (q.id !== questionId) return q;
           const replies = Array.isArray(q.replies) ? q.replies.slice() : [];
           replies.push(optimisticReply);
           return { ...q, replies };
         });
-        renderList(currentQuestions);
+        renderList(appState.currentQuestions);
 
         try {
           const res = await api('submitReply', {
@@ -1195,7 +1197,7 @@ function getAdminKeyCached() {
             replyText: text,
             authorToken,
           });
-          currentQuestions = currentQuestions.map((q) => {
+          appState.currentQuestions = appState.currentQuestions.map((q) => {
             if (q.id !== questionId) return q;
             const replies = (q.replies || []).map((r) => (r.id === tempId ? { ...r, id: res.id } : r));
             return { ...q, replies };
@@ -1205,12 +1207,12 @@ function getAdminKeyCached() {
             pendingReplies.delete(tempId);
             pendingReplies.set(res.id, { ...p, id: res.id });
           }
-          renderList(currentQuestions);
+          renderList(appState.currentQuestions);
           triggerFastSync();
         } catch (e) {
           pendingReplies.delete(tempId);
-          currentQuestions = before;
-          renderList(currentQuestions);
+          appState.currentQuestions = before;
+          renderList(appState.currentQuestions);
           alert(e.message || '返信失敗');
         }
       }
@@ -1226,7 +1228,7 @@ function getAdminKeyCached() {
         if (nameInput) nameInput.value = getDisplayName();
         const textArea = document.getElementById('modalReplyText');
         if (textArea) textArea.value = '';
-        const target = currentQuestions.find((q) => String(q.id) === replyModalQuestionId);
+        const target = appState.currentQuestions.find((q) => String(q.id) === replyModalQuestionId);
         const targetEl = document.getElementById('replyModalTarget');
         if (targetEl) {
           const source = String(target?.questionText || '').replace(/\s+/g, ' ').trim();
@@ -1279,12 +1281,12 @@ function getAdminKeyCached() {
         const prevKey = lastPollRenderKey;
         try {
           const res = await api('getLivePoll', { sessionCode: SESSION, voterToken });
-          currentPoll = res && res.poll ? res.poll : null;
+          appState.currentPoll = res && res.poll ? res.poll : null;
         } catch (e) {
-          currentPoll = null;
+          appState.currentPoll = null;
         }
-        const nextKey = currentPoll
-          ? `${currentPoll.revision || 0}:${JSON.stringify(currentPoll.metrics || [])}:${currentPoll.topicTotal || 0}`
+        const nextKey = appState.currentPoll
+          ? `${appState.currentPoll.revision || 0}:${JSON.stringify(appState.currentPoll.metrics || [])}:${appState.currentPoll.topicTotal || 0}`
           : 'none';
         if (VIEW === 'poll') {
           const activeId = document.activeElement && document.activeElement.id ? document.activeElement.id : '';
@@ -1299,7 +1301,7 @@ function getAdminKeyCached() {
       async function submitLiveHeart(kind) {
         const heartLimit = liveHeartLimit();
         if (isMobileLayout()) {
-          const metrics = getBoardMetrics(currentPoll || {});
+          const metrics = getBoardMetrics(appState.currentPoll || {});
           const target = metrics.find((m) => String(m.kind) === String(kind));
           const mine = Number((target && target.myHearts) || 0);
           if (mine >= heartLimit) {
@@ -1322,11 +1324,11 @@ function getAdminKeyCached() {
       }
 
       async function submitLiveTopic() {
-        const text = String(document.getElementById('liveTopicInput')?.value || livePollTopicDraft || '').trim();
+        const text = String(document.getElementById('liveTopicInput')?.value || appState.livePollTopicDraft || '').trim();
         if (!text) return alert('次回テーマを入力してください');
         try {
           await api('submitLivePoll', { sessionCode: SESSION, pollKind: 'topic', topicText: text, voterToken });
-          livePollTopicDraft = '';
+          appState.livePollTopicDraft = '';
           const input = document.getElementById('liveTopicInput');
           if (input) input.value = '';
           await loadPoll();
@@ -1410,7 +1412,7 @@ function getAdminKeyCached() {
       }
 
       function renderPollPanelHtml() {
-        const board = currentPoll || {
+        const board = appState.currentPoll || {
           satisfactionHearts: 0,
           understandingHearts: 0,
           mySatisfactionHearts: 0,
@@ -1499,7 +1501,7 @@ function getAdminKeyCached() {
                   ${metricInputRows}
                   <div class="field">
                     <label>聞きたいテーマ（記述式）</label>
-                    <textarea id="liveTopicInput" maxlength="300" placeholder="例）実践事例、運用フロー、失敗パターン" oninput="livePollTopicDraft=this.value">${esc(livePollTopicDraft)}</textarea>
+                    <textarea id="liveTopicInput" maxlength="300" placeholder="例）実践事例、運用フロー、失敗パターン" oninput="appState.livePollTopicDraft=this.value">${esc(appState.livePollTopicDraft)}</textarea>
                     <div class="actions poll-topic-actions">
                       <button class="ghost" onclick="submitLiveTopic()">送信</button>
                     </div>
@@ -1516,8 +1518,8 @@ function getAdminKeyCached() {
       }
 
       async function loadVotePoll() {
-        const prevPoll = currentVotePoll;
-        const prevErr = voteLoadError;
+        const prevPoll = appState.currentVotePoll;
+        const prevErr = appState.voteLoadError;
         const pollKey = (p) => {
           if (!p) return 'none';
           const counts = Array.isArray(p.counts) ? p.counts.join(',') : '';
@@ -1537,35 +1539,35 @@ function getAdminKeyCached() {
         };
         const syncVoteSelection = (poll, list) => {
           if (poll && poll.id) {
-            selectedVotePollId = String(poll.id);
+            appState.selectedVotePollId = String(poll.id);
             return;
           }
           if (Array.isArray(list) && list.length) {
-            selectedVotePollId = String(list[0].id || '');
+            appState.selectedVotePollId = String(list[0].id || '');
             return;
           }
-          selectedVotePollId = '';
+          appState.selectedVotePollId = '';
         };
 
         try {
-          const res = await api("getPoll", { sessionCode: SESSION, voterToken, pollId: selectedVotePollId });
+          const res = await api("getPoll", { sessionCode: SESSION, voterToken, pollId: appState.selectedVotePollId });
           const poll = res && res.poll ? res.poll : null;
-          votePollCount = Math.max(0, Number(res && res.pollCount || 0));
-          votePollLimit = Math.max(1, Number(res && res.maxPolls || 3));
-          votePollList = normalizeVotePollList(res && res.pollList);
-          currentVotePoll = poll || null;
-          syncVoteSelection(currentVotePoll, votePollList);
-          voteLoadError = '';
+          appState.votePollCount = Math.max(0, Number(res && res.pollCount || 0));
+          appState.votePollLimit = Math.max(1, Number(res && res.maxPolls || 3));
+          appState.votePollList = normalizeVotePollList(res && res.pollList);
+          appState.currentVotePoll = poll || null;
+          syncVoteSelection(appState.currentVotePoll, appState.votePollList);
+          appState.voteLoadError = '';
           syncVoteTargetMenuUi();
           if (VIEW === 'vote') {
-            const nextKey = pollKey(currentVotePoll);
+            const nextKey = pollKey(appState.currentVotePoll);
             if (nextKey !== prevKey || prevErr) {
               renderPanel();
             }
           }
           return;
         } catch (e) {
-          voteLoadError = e && e.message ? String(e.message) : '投票データの取得に失敗しました';
+          appState.voteLoadError = e && e.message ? String(e.message) : '投票データの取得に失敗しました';
         }
 
         // 追加フォールバック: 直接GETで再取得（iPhone系の一部通信失敗対策）
@@ -1574,20 +1576,20 @@ function getAdminKeyCached() {
           u.searchParams.set('action', 'getPoll');
           u.searchParams.set('session', SESSION);
           u.searchParams.set('voterToken', voterToken || '');
-          if (selectedVotePollId) u.searchParams.set('pollId', selectedVotePollId);
+          if (appState.selectedVotePollId) u.searchParams.set('pollId', appState.selectedVotePollId);
           u.searchParams.set('_t', String(Date.now()));
           const r = await fetch(u.toString(), { cache: 'no-store' });
           const j = await r.json();
           if (j && j.ok) {
-            votePollCount = Math.max(0, Number(j && j.pollCount || votePollCount || 0));
-            votePollLimit = Math.max(1, Number(j && j.maxPolls || votePollLimit || 3));
-            votePollList = normalizeVotePollList(j && j.pollList);
-            currentVotePoll = j.poll || null;
-            syncVoteSelection(currentVotePoll, votePollList);
-            voteLoadError = '';
+            appState.votePollCount = Math.max(0, Number(j && j.pollCount || appState.votePollCount || 0));
+            appState.votePollLimit = Math.max(1, Number(j && j.maxPolls || appState.votePollLimit || 3));
+            appState.votePollList = normalizeVotePollList(j && j.pollList);
+            appState.currentVotePoll = j.poll || null;
+            syncVoteSelection(appState.currentVotePoll, appState.votePollList);
+            appState.voteLoadError = '';
             syncVoteTargetMenuUi();
             if (VIEW === 'vote') {
-              const nextKey = pollKey(currentVotePoll);
+              const nextKey = pollKey(appState.currentVotePoll);
               if (nextKey !== prevKey || prevErr) {
                 renderPanel();
               }
@@ -1600,7 +1602,7 @@ function getAdminKeyCached() {
 
         // 取得失敗時は既存データを保持（nullで消さない）
         syncVoteTargetMenuUi();
-        if (VIEW === 'vote' && voteLoadError !== prevErr) {
+        if (VIEW === 'vote' && appState.voteLoadError !== prevErr) {
           renderPanel();
         }
       }
@@ -1611,7 +1613,7 @@ function getAdminKeyCached() {
 
       function setVoteTargetDraft(value) {
         const n = Math.max(10, Math.min(1000, Number(value || 50) || 50));
-        voteDraftTargetVotes = n;
+        appState.voteDraftTargetVotes = n;
         saveVoteDraft();
         syncVoteTargetMenuUi();
         if (VIEW === 'vote') {
@@ -1620,96 +1622,96 @@ function getAdminKeyCached() {
       }
 
       function updateVoteOptionDraft(index, value) {
-        if (index < 0 || index >= voteDraftOptionList.length) return;
-        voteDraftOptionList[index] = String(value || "").slice(0, 80);
+        if (index < 0 || index >= appState.voteDraftOptionList.length) return;
+        appState.voteDraftOptionList[index] = String(value || "").slice(0, 80);
         saveVoteDraft();
       }
 
       function addVoteOptionDraft() {
-        if (voteDraftOptionList.length >= 6) return;
-        voteDraftOptionList.push(`選択肢${String.fromCharCode(65 + voteDraftOptionList.length)}`);
+        if (appState.voteDraftOptionList.length >= 6) return;
+        appState.voteDraftOptionList.push(`選択肢${String.fromCharCode(65 + appState.voteDraftOptionList.length)}`);
         saveVoteDraft();
         renderPanel();
       }
 
       function removeVoteOptionDraft(index) {
-        if (voteDraftOptionList.length <= 2) return;
-        voteDraftOptionList.splice(index, 1);
+        if (appState.voteDraftOptionList.length <= 2) return;
+        appState.voteDraftOptionList.splice(index, 1);
         saveVoteDraft();
         renderPanel();
       }
 
       function setVoteMaxMode(mode) {
         if (mode === 'unlimited') {
-          voteDraftMaxVotesPerUser = 0;
+          appState.voteDraftMaxVotesPerUser = 0;
         } else {
-          const base = normalizeVoteDraftMaxVotes(voteDraftMaxVotesPerUser) || 5;
-          voteDraftMaxVotesPerUser = base;
+          const base = normalizeVoteDraftMaxVotes(appState.voteDraftMaxVotesPerUser) || 5;
+          appState.voteDraftMaxVotesPerUser = base;
         }
         saveVoteDraft();
         if (VIEW === 'vote') renderPanel();
       }
 
       function setVoteMaxDraft(value) {
-        voteDraftMaxVotesPerUser = normalizeVoteDraftMaxVotes(value);
+        appState.voteDraftMaxVotesPerUser = normalizeVoteDraftMaxVotes(value);
         saveVoteDraft();
       }
 
       function setVoteTimerDraft(value) {
-        voteDraftTimerMinutes = normalizeVoteDraftTimerMinutes(value);
+        appState.voteDraftTimerMinutes = normalizeVoteDraftTimerMinutes(value);
         saveVoteDraft();
       }
 
       function canCreateMoreVotePolls() {
-        return Number(votePollCount || 0) < Number(votePollLimit || 3);
+        return Number(appState.votePollCount || 0) < Number(appState.votePollLimit || 3);
       }
 
       function openNewVoteComposer() {
         if (!canCreateMoreVotePolls()) {
-          alert(`ライブ投票は最大${Number(votePollLimit || 3)}件までです`);
+          alert(`ライブ投票は最大${Number(appState.votePollLimit || 3)}件までです`);
           return;
         }
-        forceVoteComposer = true;
-        voteDraftQuestion = '';
-        voteDraftOptionList = ['選択肢A', '選択肢B'];
-        voteDraftTimerMinutes = 0;
+        appState.forceVoteComposer = true;
+        appState.voteDraftQuestion = '';
+        appState.voteDraftOptionList = ['選択肢A', '選択肢B'];
+        appState.voteDraftTimerMinutes = 0;
         saveVoteDraft();
         renderPanel();
       }
 
       async function openVotePollById(pollId) {
         const nextId = String(pollId || '').trim();
-        if (!nextId || nextId === selectedVotePollId) return;
-        selectedVotePollId = nextId;
+        if (!nextId || nextId === appState.selectedVotePollId) return;
+        appState.selectedVotePollId = nextId;
         await loadVotePoll();
       }
 
       async function createVotePoll() {
-        const questionText = String(voteDraftQuestion || "").trim();
-        const options = (voteDraftOptionList || []).map((x) => String(x || "").trim()).filter(Boolean);
+        const questionText = String(appState.voteDraftQuestion || "").trim();
+        const options = (appState.voteDraftOptionList || []).map((x) => String(x || "").trim()).filter(Boolean);
         if (!questionText) return alert("投票タイトルを入力してください");
         if (options.length < 2) return alert("選択肢は2つ以上必要です");
-        if (!canCreateMoreVotePolls()) return alert(`ライブ投票は最大${Number(votePollLimit || 3)}件までです`);
+        if (!canCreateMoreVotePolls()) return alert(`ライブ投票は最大${Number(appState.votePollLimit || 3)}件までです`);
         try {
           const createRes = await api("createPoll", {
             sessionCode: SESSION,
             questionText,
             options,
             pollType: "CHOICE",
-            targetVotes: Math.max(10, Math.min(1000, Number(voteDraftTargetVotes || 50) || 50)),
-            maxVotesPerUser: normalizeVoteDraftMaxVotes(voteDraftMaxVotesPerUser),
-            timerMinutes: normalizeVoteDraftTimerMinutes(voteDraftTimerMinutes),
+            targetVotes: Math.max(10, Math.min(1000, Number(appState.voteDraftTargetVotes || 50) || 50)),
+            maxVotesPerUser: normalizeVoteDraftMaxVotes(appState.voteDraftMaxVotesPerUser),
+            timerMinutes: normalizeVoteDraftTimerMinutes(appState.voteDraftTimerMinutes),
           });
           if (createRes && typeof createRes.pollCount !== 'undefined') {
-            votePollCount = Math.max(0, Number(createRes.pollCount || 0));
+            appState.votePollCount = Math.max(0, Number(createRes.pollCount || 0));
           }
           if (createRes && typeof createRes.maxPolls !== 'undefined') {
-            votePollLimit = Math.max(1, Number(createRes.maxPolls || 3));
+            appState.votePollLimit = Math.max(1, Number(createRes.maxPolls || 3));
           }
           if (createRes && createRes.id) {
-            selectedVotePollId = String(createRes.id);
+            appState.selectedVotePollId = String(createRes.id);
           }
-          forceVoteComposer = false;
+          appState.forceVoteComposer = false;
           saveVoteDraft();
           await loadVotePoll();
           triggerFastSync();
@@ -1719,15 +1721,15 @@ function getAdminKeyCached() {
       }
 
       async function castVotePoll(choiceIndex) {
-        if (!currentVotePoll || !currentVotePoll.id) return;
-        const maxVotes = Number(currentVotePoll.maxVotesPerUser || 0);
-        const myVoteTotal = Number(currentVotePoll.myVoteTotal || 0);
+        if (!appState.currentVotePoll || !appState.currentVotePoll.id) return;
+        const maxVotes = Number(appState.currentVotePoll.maxVotesPerUser || 0);
+        const myVoteTotal = Number(appState.currentVotePoll.myVoteTotal || 0);
         if (maxVotes > 0 && myVoteTotal >= maxVotes) {
           alert(`この投票は1人${maxVotes}票までです`);
           return;
         }
         try {
-          const res = await api("votePoll", { pollId: currentVotePoll.id, choiceIndex, voterToken });
+          const res = await api("votePoll", { pollId: appState.currentVotePoll.id, choiceIndex, voterToken });
           if (res && res.duplicated) {
             alert("この投票はすでに送信済みです");
             return;
@@ -1740,13 +1742,13 @@ function getAdminKeyCached() {
       }
 
       async function closeVotePoll() {
-        if (!currentVotePoll || !currentVotePoll.id) return;
+        if (!appState.currentVotePoll || !appState.currentVotePoll.id) return;
         const ok = window.confirm("この投票を終了しますか？");
         if (!ok) return;
         try {
           const adminKey = await ensureAdminKeyIfNeeded('closePoll');
           await api('verifyAdminKey', { adminKey });
-          await api("closePoll", { pollId: currentVotePoll.id, adminKey });
+          await api("closePoll", { pollId: appState.currentVotePoll.id, adminKey });
           await loadVotePoll();
           triggerFastSync();
         } catch (e) {
@@ -1761,13 +1763,13 @@ function getAdminKeyCached() {
           const adminKey = await ensureAdminKeyIfNeeded('clearPoll');
           await api('verifyAdminKey', { adminKey });
           await api("clearPoll", { sessionCode: SESSION, adminKey });
-          currentVotePoll = null;
-          votePollCount = 0;
-          votePollLimit = 3;
-          votePollList = [];
-          selectedVotePollId = '';
-          votePrevRankMap = new Map();
-          votePrevWidthMap = new Map();
+          appState.currentVotePoll = null;
+          appState.votePollCount = 0;
+          appState.votePollLimit = 3;
+          appState.votePollList = [];
+          appState.selectedVotePollId = '';
+          appState.votePrevRankMap = new Map();
+          appState.votePrevWidthMap = new Map();
           renderPanel();
           triggerFastSync();
         } catch (e) {
@@ -1782,10 +1784,10 @@ function getAdminKeyCached() {
           const adminKey = await ensureAdminKeyIfNeeded('clearQuestions');
           await api('verifyAdminKey', { adminKey });
           await api('clearQuestions', { sessionCode: SESSION, adminKey });
-          currentQuestions = [];
+          appState.currentQuestions = [];
           pendingQuestions.clear();
           pendingReplies.clear();
-          renderList(currentQuestions);
+          renderList(appState.currentQuestions);
           triggerFastSync();
         } catch (e) {
           alert(e.message || '投稿データのクリアに失敗しました');
@@ -1807,13 +1809,13 @@ function getAdminKeyCached() {
         }
       }
       function renderVotePanelHtml() {
-        const poll = currentVotePoll;
+        const poll = appState.currentVotePoll;
         const canManage = !isMobileLayout();
-        const activePollId = String((poll && poll.id) || selectedVotePollId || '');
-        const voteNavHtml = canManage && Array.isArray(votePollList) && votePollList.length
+        const activePollId = String((poll && poll.id) || appState.selectedVotePollId || '');
+        const voteNavHtml = canManage && Array.isArray(appState.votePollList) && appState.votePollList.length
           ? `<div class="field" style="margin-top:12px;">
               <div class="actions" style="margin-top:6px; flex-wrap:wrap;">
-                ${votePollList.map((item, idx) => {
+                ${appState.votePollList.map((item, idx) => {
                   const pollId = String(item && item.id || '');
                   const title = String(item && item.questionText || '').trim() || `投票${idx + 1}`;
                   const status = String(item && item.status || 'CLOSED') === 'OPEN' ? '進行中' : '終了';
@@ -1823,14 +1825,14 @@ function getAdminKeyCached() {
               </div>
             </div>`
           : '';
-        if (!poll || forceVoteComposer) {
-          votePrevRankMap = new Map();
-          votePrevWidthMap = new Map();
-          const err = voteLoadError ? `<div class="muted-note" style="color:#dc4c64;">${esc(voteLoadError)}</div><div class="actions" style="margin-top:8px;"><button class="ghost" onclick="retryLoadVotePoll()">再取得</button></div>` : '';
+        if (!poll || appState.forceVoteComposer) {
+          appState.votePrevRankMap = new Map();
+          appState.votePrevWidthMap = new Map();
+          const err = appState.voteLoadError ? `<div class="muted-note" style="color:#dc4c64;">${esc(appState.voteLoadError)}</div><div class="actions" style="margin-top:8px;"><button class="ghost" onclick="retryLoadVotePoll()">再取得</button></div>` : '';
           if (isMobileLayout()) {
             return `<div class="card poll-box"><p class="poll-q">投票</p><div class="muted-note">運営が投票を開始すると、ここに選択肢が表示されます。</div>${err}</div>`;
           }
-          const editorRows = (voteDraftOptionList || []).map((opt, idx) => `
+          const editorRows = (appState.voteDraftOptionList || []).map((opt, idx) => `
             <div class="poll-input-row poll-input-row-editor">
               <input value="${esc(opt)}" maxlength="80" oninput="updateVoteOptionDraft(${idx}, this.value)" placeholder="選択肢">
               <button class="ghost" onclick="removeVoteOptionDraft(${idx})">削除</button>
@@ -1838,11 +1840,11 @@ function getAdminKeyCached() {
           return `
             <div class="card poll-box">
               <p class="poll-q">ライブ投票を作成（運営）</p>
-              <div class="poll-meta">作成数 ${Number(votePollCount || 0)} / ${Number(votePollLimit || 3)}</div>
+              <div class="poll-meta">作成数 ${Number(appState.votePollCount || 0)} / ${Number(appState.votePollLimit || 3)}</div>
               ${voteNavHtml}
               <div class="field">
                 <label>投票タイトル</label>
-                <input value="${esc(voteDraftQuestion)}" maxlength="200" oninput="voteDraftQuestion=this.value;saveVoteDraft()" placeholder="例）今日もっと聞きたいのは？">
+                <input value="${esc(appState.voteDraftQuestion)}" maxlength="200" oninput="appState.voteDraftQuestion=this.value;saveVoteDraft()" placeholder="例）今日もっと聞きたいのは？">
               </div>
               <div class="field">
                 <label>選択肢（2〜6）</label>
@@ -1851,23 +1853,23 @@ function getAdminKeyCached() {
               <div class="field">
                 <label>1人あたり投票上限</label>
                 <div class="actions" style="margin-top:4px; align-items:center;">
-                  <button class="ghost ${voteDraftMaxVotesPerUser > 0 ? 'active' : ''}" onclick="setVoteMaxMode('single')">${voteDraftMaxVotesPerUser > 0 ? '☑︎' : '☐'} 単一フォーム</button>
-                  <input type="number" min="1" max="1000" step="1" value="${Number(voteDraftMaxVotesPerUser > 0 ? voteDraftMaxVotesPerUser : 5)}" oninput="setVoteMaxDraft(this.value)" ${voteDraftMaxVotesPerUser === 0 ? 'disabled' : ''} style="width:84px; min-width:84px; text-align:right;" aria-label="1人あたり上限票">
+                  <button class="ghost ${appState.voteDraftMaxVotesPerUser > 0 ? 'active' : ''}" onclick="setVoteMaxMode('single')">${appState.voteDraftMaxVotesPerUser > 0 ? '☑︎' : '☐'} 単一フォーム</button>
+                  <input type="number" min="1" max="1000" step="1" value="${Number(appState.voteDraftMaxVotesPerUser > 0 ? appState.voteDraftMaxVotesPerUser : 5)}" oninput="setVoteMaxDraft(this.value)" ${appState.voteDraftMaxVotesPerUser === 0 ? 'disabled' : ''} style="width:84px; min-width:84px; text-align:right;" aria-label="1人あたり上限票">
                   <span class="poll-meta" style="margin:0;">票</span>
-                  <button class="ghost ${voteDraftMaxVotesPerUser === 0 ? 'active' : ''}" onclick="setVoteMaxMode('unlimited')">${voteDraftMaxVotesPerUser === 0 ? '☑︎' : '☐'} 無制限</button>
+                  <button class="ghost ${appState.voteDraftMaxVotesPerUser === 0 ? 'active' : ''}" onclick="setVoteMaxMode('unlimited')">${appState.voteDraftMaxVotesPerUser === 0 ? '☑︎' : '☐'} 無制限</button>
                 </div>
               </div>
               <div class="field">
                 <label>タイマー（分）</label>
                 <div class="actions" style="margin-top:4px; align-items:center;">
-                  <input type="number" min="0" max="720" step="1" value="${Number(voteDraftTimerMinutes || 0)}" oninput="setVoteTimerDraft(this.value)" style="width:96px; min-width:96px; text-align:right;" aria-label="投票タイマー分">
+                  <input type="number" min="0" max="720" step="1" value="${Number(appState.voteDraftTimerMinutes || 0)}" oninput="setVoteTimerDraft(this.value)" style="width:96px; min-width:96px; text-align:right;" aria-label="投票タイマー分">
                   <span class="poll-meta" style="margin:0;">分</span>
                   <span class="poll-meta" style="margin:0;">0でタイマーなし</span>
                 </div>
               </div>
               <div class="actions" style="margin-top:8px;">
                 <button class="ghost" onclick="addVoteOptionDraft()">選択肢追加</button>
-                ${poll ? `<button class="ghost" onclick="forceVoteComposer=false;renderPanel()">結果に戻る</button>` : ''}
+                ${poll ? `<button class="ghost" onclick="appState.forceVoteComposer=false;renderPanel()">結果に戻る</button>` : ''}
                 <button class="primary" onclick="createVotePoll()" ${canCreateMoreVotePolls() ? '' : 'disabled'}>投票開始</button>
               </div>
               ${canCreateMoreVotePolls() ? '' : `<div class="poll-meta" style="margin-top:8px;">上限に達したため、新規作成はできません</div>`}
@@ -1899,8 +1901,8 @@ function getAdminKeyCached() {
         const maxVotes = Number(poll.maxVotesPerUser || 0);
         const pollOpen = String(poll.status || 'OPEN') === 'OPEN';
         if (isMobileVote) {
-          votePrevRankMap = new Map();
-          votePrevWidthMap = new Map();
+          appState.votePrevRankMap = new Map();
+          appState.votePrevWidthMap = new Map();
           const mobileRows = rowModels.map((row) => {
             const idx = row.idx;
             const mine = myVotes.includes(idx);
@@ -1929,10 +1931,10 @@ function getAdminKeyCached() {
           const idx = row.idx;
           const c = row.count;
           const width = leaderCount > 0 ? Math.max(0, Math.min(100, Math.round((c / leaderCount) * 100))) : 0;
-          const prevWidth = votePrevWidthMap.has(idx) ? Number(votePrevWidthMap.get(idx)) : width;
+          const prevWidth = appState.votePrevWidthMap.has(idx) ? Number(appState.votePrevWidthMap.get(idx)) : width;
           const mine = myVotes.includes(idx);
           const isLeader = !isMobileVote && rankIdx === 0 && c > 0;
-          const prevRank = votePrevRankMap.has(idx) ? Number(votePrevRankMap.get(idx)) : rankIdx;
+          const prevRank = appState.votePrevRankMap.has(idx) ? Number(appState.votePrevRankMap.get(idx)) : rankIdx;
           const rankDelta = prevRank - rankIdx;
           const rankShiftPx = Math.max(-420, Math.min(420, rankDelta * rankStepPx));
           const rankAnimClass = !isMobileVote && rankDelta !== 0 ? ' vote-row-rank-shift' : '';
@@ -1946,8 +1948,8 @@ function getAdminKeyCached() {
               <div class="vote-row-meta">${c}票${isLeader && leaderDiff > 0 ? ` / 現在トップ` : ""}</div>
             </div>`;
         }).join("");
-        votePrevRankMap = new Map(rowModels.map((row, rankIdx) => [row.idx, rankIdx]));
-        votePrevWidthMap = new Map(rowModels.map((row) => {
+        appState.votePrevRankMap = new Map(rowModels.map((row, rankIdx) => [row.idx, rankIdx]));
+        appState.votePrevWidthMap = new Map(rowModels.map((row) => {
           const width = leaderCount > 0 ? Math.max(0, Math.min(100, Math.round((row.count / leaderCount) * 100))) : 0;
           return [row.idx, width];
         }));
@@ -1961,11 +1963,11 @@ function getAdminKeyCached() {
             ${voteNavHtml}
             <div class="vote-board">${rows}</div>
             ${canManage && pollOpen ? `<div class="actions" style="margin-top:10px;justify-content:flex-end;">
-              <button class="ghost" onclick="forceVoteComposer=true;renderPanel()">編集</button>
+              <button class="ghost" onclick="appState.forceVoteComposer=true;renderPanel()">編集</button>
               <button class="ghost" onclick="closeVotePoll()">投票終了</button>
             </div>` : ""}
             ${canManage && !pollOpen ? `<div class="actions" style="margin-top:10px;justify-content:flex-end;">
-              <button class="ghost" onclick="forceVoteComposer=true;renderPanel()">編集</button>
+              <button class="ghost" onclick="appState.forceVoteComposer=true;renderPanel()">編集</button>
               <button class="primary" onclick="openNewVoteComposer()" ${canCreateMoreVotePolls() ? '' : 'disabled'}>新規追加</button>
             </div>` : ""}
           </div>`;
@@ -1989,7 +1991,7 @@ function getAdminKeyCached() {
         stopVoteCountdownTicker();
         const screenPanel = '';
         if (VIEW === 'audience') {
-          const startGuideHtml = showStartGuide ? `
+          const startGuideHtml = appState.showStartGuide ? `
             <div class="card start-guide">
               <p class="start-guide-title">このイベント（${esc(SESSION)}）で投稿を開始します</p>
               <p class="start-guide-text">右下の＋から質問できます。</p>
@@ -2245,7 +2247,7 @@ function getAdminKeyCached() {
             const pa = a && a.pinned ? 1 : 0;
             const pb = b && b.pinned ? 1 : 0;
             if (pb !== pa) return pb - pa;
-            if (screenSortMode === 'popular') {
+            if (appState.screenSortMode === 'popular') {
               const va = Number(a && a.votes ? a.votes : 0);
               const vb = Number(b && b.votes ? b.votes : 0);
               if (vb !== va) return vb - va;
@@ -2255,7 +2257,7 @@ function getAdminKeyCached() {
             return tb - ta;
           });
         }
-        if (VIEW === 'screen' && unreadOnly) {
+        if (VIEW === 'screen' && appState.unreadOnly) {
           questions = questions.filter((q) => !isQuestionRead(q.id));
         }
 
@@ -2340,20 +2342,20 @@ function getAdminKeyCached() {
       }
 
       async function loadQuestions() {
-        if (isLoading) return;
-        isLoading = true;
-        const seq = ++latestLoadSeq;
+        if (appState.isLoading) return;
+        appState.isLoading = true;
+        const seq = ++appState.latestLoadSeq;
         try {
-          const prevRevision = serverRevision;
+          const prevRevision = appState.serverRevision;
           const res = await fetchListQuestionsStable_({
             sessionCode: SESSION,
             authorToken,
-            sinceRevision: serverRevision,
+            sinceRevision: appState.serverRevision,
             includeAnswered: operatorMode ? 1 : 0,
           });
-          if (seq !== latestLoadSeq) return;
+          if (seq !== appState.latestLoadSeq) return;
           const nextRevision = typeof res.revision === 'number' ? res.revision : prevRevision;
-          if (typeof res.revision === 'number') serverRevision = res.revision;
+          if (typeof res.revision === 'number') appState.serverRevision = res.revision;
           if (res && res.changed === false) {
             return;
           }
@@ -2391,8 +2393,8 @@ function getAdminKeyCached() {
             if (serverExists) pendingReplies.delete(id);
           });
 
-          currentQuestions = merged;
-          renderList(currentQuestions);
+          appState.currentQuestions = merged;
+          renderList(appState.currentQuestions);
         } catch (e) {
           const now = Date.now();
           if (now - lastErrorAt > 4000) {
@@ -2400,7 +2402,7 @@ function getAdminKeyCached() {
             console.warn('[Chat.app] loadQuestions:', e.message || '取得失敗');
           }
         } finally {
-          isLoading = false;
+          appState.isLoading = false;
         }
       }
 
@@ -2441,7 +2443,7 @@ function getAdminKeyCached() {
 
       function triggerFastSync() {
         const token = ++fastSyncToken;
-        turboUntil = Date.now() + TURBO_WINDOW_MS;
+        appState.turboUntil = Date.now() + TURBO_WINDOW_MS;
         startPolling();
         loadQuestions();
         loadVotePoll();
@@ -2455,26 +2457,26 @@ function getAdminKeyCached() {
       }
 
       function toggleUnreadOnly() {
-        unreadOnly = !unreadOnly;
+        appState.unreadOnly = !appState.unreadOnly;
         renderPanel();
-        renderList(currentQuestions);
+        renderList(appState.currentQuestions);
       }
 
       function toggleScreenSortMode() {
-        screenSortMode = screenSortMode === 'new' ? 'popular' : 'new';
+        appState.screenSortMode = appState.screenSortMode === 'new' ? 'popular' : 'new';
         renderPanel();
-        renderList(currentQuestions);
+        renderList(appState.currentQuestions);
       }
 
       function clearReadState() {
-        readQuestionIds.clear();
+        appState.readQuestionIds.clear();
         saveReadState();
         renderPanel();
-        renderList(currentQuestions);
+        renderList(appState.currentQuestions);
       }
 
       function currentPollInterval() {
-        const turbo = Date.now() < turboUntil;
+        const turbo = Date.now() < appState.turboUntil;
         if (VIEW === 'screen' || VIEW === 'poll' || VIEW === 'vote') return turbo ? TURBO_POLL_SCREEN_MS : POLL_SCREEN_MS;
         return turbo ? TURBO_POLL_AUDIENCE_MS : POLL_AUDIENCE_MS;
       }
@@ -2521,26 +2523,26 @@ function getAdminKeyCached() {
         updateStartGuideVisibility();
         pendingQuestions.clear();
         pendingReplies.clear();
-        currentPoll = null;
-        currentVotePoll = null;
-        votePollCount = 0;
-        votePollLimit = 3;
-        votePollList = [];
-        selectedVotePollId = '';
-        pollDraftQuestion = '';
-        pollDraftOptionList = ['', ''];
+        appState.currentPoll = null;
+        appState.currentVotePoll = null;
+        appState.votePollCount = 0;
+        appState.votePollLimit = 3;
+        appState.votePollList = [];
+        appState.selectedVotePollId = '';
+        appState.pollDraftQuestion = '';
+        appState.pollDraftOptionList = ['', ''];
         await loadVoteDraft();
-        pollDraftType = 'CHOICE';
+        appState.pollDraftType = 'CHOICE';
         pollDraftTextPlaceholder = '';
-        livePollTopicDraft = '';
+        appState.livePollTopicDraft = '';
         lastPollRenderKey = '';
-        serverRevision = 0;
+        appState.serverRevision = 0;
         fastSyncToken += 1;
-        latestLoadSeq += 1;
+        appState.latestLoadSeq += 1;
 
         syncCompactUrl();
 
-        if (VIEW === 'screen') { unreadOnly = true; screenSortMode = 'new'; }
+        if (VIEW === 'screen') { appState.unreadOnly = true; appState.screenSortMode = 'new'; }
 
         const app = document.getElementById('app');
         app.innerHTML = shell();
@@ -2801,7 +2803,7 @@ function getAdminKeyCached() {
         }
         if (VIEW === v) return;
         VIEW = v;
-        if (VIEW === 'screen') { unreadOnly = true; screenSortMode = 'new'; }
+        if (VIEW === 'screen') { appState.unreadOnly = true; appState.screenSortMode = 'new'; }
         applyFromToolbar();
       }
 
