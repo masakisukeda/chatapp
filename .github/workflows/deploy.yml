@@ -39,11 +39,12 @@ jobs:
             exit 1
           fi
 
-          DEFAULT_FTP_BASE="/virtual/sukeda/public_html/drsp.cc/chat"
+          DEFAULT_FTP_BASE="/public_html/drsp.cc/chat"
           LEGACY_FTP_BASE="/virtual/sukeda/public_html/chat"
+          LEGACY_FTP_BASE2="/virtual/sukeda/public_html/drsp.cc/chat"
           RESOLVED_FTP_BASE="${FTP_BASE:-$DEFAULT_FTP_BASE}"
-          if [ "$RESOLVED_FTP_BASE" = "$LEGACY_FTP_BASE" ]; then
-            echo "CHAT_FTP_BASE が旧パス($LEGACY_FTP_BASE)のため、$DEFAULT_FTP_BASE に補正してデプロイします"
+          if [ "$RESOLVED_FTP_BASE" = "$LEGACY_FTP_BASE" ] || [ "$RESOLVED_FTP_BASE" = "$LEGACY_FTP_BASE2" ]; then
+            echo "CHAT_FTP_BASE が旧/非公開パス($RESOLVED_FTP_BASE)のため、$DEFAULT_FTP_BASE に補正してデプロイします"
             RESOLVED_FTP_BASE="$DEFAULT_FTP_BASE"
           fi
           echo "Deploy target: $RESOLVED_FTP_BASE"
