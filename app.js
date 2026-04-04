@@ -921,10 +921,12 @@ function getAdminKeyCached() {
 
       function shell() {
         const subtitle = VIEW === 'poll'
-          ? '左でリアルタイム結果、右でその場入力。満足度・理解度・聞きたいテーマをみんなで集めます。'
+          ? 'ライブアンケート'
           : (VIEW === 'vote'
-            ? '運営が提示した選択肢に投票。棒グラフでリアルタイムに競り具合を表示します。'
-            : '質問を投稿して、みんなで盛り上げよう🐮');
+            ? 'ライブ投票'
+            : (VIEW === 'screen'
+              ? '投稿リスト表示'
+              : '投稿表示'));
 
         return `
           <section class="hero">
