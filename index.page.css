@@ -378,7 +378,7 @@
         white-space: nowrap;
       }
       .q-like-mobile {
-        display: none !important;
+        display: none;
       }
       .heart-mark {
         color: var(--brand) !important;
@@ -426,6 +426,19 @@
         }
         .q-item-audience .q-side-audience {
           display: none;
+        }
+        .reply-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          padding: 8px 10px;
+        }
+        .reply-actions {
+          grid-column: auto;
+          grid-row: auto;
+          margin-top: 6px;
+          align-items: center;
+          justify-content: flex-end;
         }
         .reply-form-audience {
           grid-template-columns: 1fr auto;
