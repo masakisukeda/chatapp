@@ -1353,7 +1353,8 @@ function getAdminKeyCached() {
 
       function heartsCompact(count) {
         const c = Math.max(0, Number(count || 0));
-        const shown = Math.min(10, c);
+        const visualCap = isMobileLayout() ? 5 : 10;
+        const shown = Math.min(visualCap, c);
         return shown > 0 ? `<span class="heart-mark">${'♥︎'.repeat(shown)}</span>` : '0';
       }
 
