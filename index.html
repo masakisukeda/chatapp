@@ -1786,7 +1786,6 @@ function getAdminKeyCached() {
         const activePollId = String((poll && poll.id) || selectedVotePollId || '');
         const voteNavHtml = canManage && Array.isArray(votePollList) && votePollList.length
           ? `<div class="field" style="margin-top:12px;">
-              <label>作成済み投票</label>
               <div class="actions" style="margin-top:6px; flex-wrap:wrap;">
                 ${votePollList.map((item, idx) => {
                   const pollId = String(item && item.id || '');
