@@ -253,7 +253,8 @@
         justify-self: end;
       }
       .heart-mark {
-        color: var(--brand);
+        color: var(--brand) !important;
+        -webkit-text-fill-color: var(--brand);
         font-weight: 700;
       }
 
