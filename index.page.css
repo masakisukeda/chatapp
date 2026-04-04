@@ -463,7 +463,7 @@
           background: linear-gradient(180deg, var(--surface) 0, var(--surface-2) 100%);
         }
         .q-item-audience .q-title {
-          font-size: var(--font-lg);
+          font-size: var(--font-xl);
           line-height: 1.45;
         }
         .q-item-audience .q-meta {
@@ -505,7 +505,7 @@
           padding-right: 0;
         }
         .q-item-audience .reply-item .reply-text {
-          font-size: var(--font-md);
+          font-size: var(--font-sm);
           line-height: 1.5;
         }
         .q-item-audience .reply-item .reply-meta {
@@ -572,7 +572,7 @@
           margin-left: 0;
         }
         .poll-q {
-          font-size: 22px;
+          font-size: var(--font-xl);
         }
         .poll-input-label,
         .poll-opt-label,
@@ -583,10 +583,10 @@
         .poll-result-item,
         .poll-topic-item,
         .poll-input-controls .poll-meta {
-          font-size: 14px;
+          font-size: var(--font-sm);
         }
         .poll-heart-count {
-          font-size: 12px;
+          font-size: var(--font-xs);
         }
         .poll-topic-actions {
           justify-content: flex-end;
