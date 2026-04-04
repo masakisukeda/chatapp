@@ -79,6 +79,16 @@ git push origin main
 ```
 - `revert` 後も必ず `curl -I` で HTTP `200` を確認すること。
 
+## 4.4 デプロイ完遂ルール
+- デプロイに関してユーザーへの確認は不要。以下を自己完結で実施し、結果のみ報告すること。
+1. `push` -> GitHub Actions 完了を待つ
+2. `curl -I https://drsp.cc/chat/app.js` で HTTP `200` を確認
+3. 不具合があれば即座にロールバック（ユーザーへの報告前に実施）
+```bash
+git revert HEAD --no-edit
+git push origin main
+```
+
 ## 5. NG
 - 無関係ファイルの一括整形。
 - DBファイルの直接破壊。
