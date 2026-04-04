@@ -20,7 +20,7 @@
         ? 'mobile'
         : ((layoutParam === 'pc' || layoutParam === 'desktop') ? 'desktop' : '');
       const operatorMode = true;
-      let sessionConfig = { anonymousOnly: true, tipUrl: '', surveyUrl: String(localStorage.getItem(surveyUrlKey()) || '').trim(), metricLabels: ['満足度', '理解度'] };
+      let sessionConfig = { anonymousOnly: true, tipUrl: '', surveyUrl: String(localStorage.getItem(storageKey(SURVEY_URL_PREFIX)) || '').trim(), metricLabels: ['満足度', '理解度'] };
       let metricLabelDraft = ['満足度', '理解度'];
       const appState = {
         currentQuestions: [],
@@ -142,32 +142,13 @@ const ADMIN_ACTIONS = new Set([
         return isMobileLayout() ? 5 : 10;
       }
 
-      function readStateKey() {
-        return `${READ_STATE_PREFIX}${SESSION}`;
+      function storageKey(prefix) {
+        return prefix + SESSION;
       }
 
-      function displayNameKey() {
-        return `${DISPLAY_NAME_PREFIX}${SESSION}`;
-      }
-
-      function surveyUrlKey() {
-        return `${SURVEY_URL_PREFIX}${SESSION}`;
-      }
-
-      function voteDraftKey() {
-        return `${VOTE_DRAFT_PREFIX}${SESSION}`;
-      }
-
-      function normalizeVoteDraftMaxVotes(value) {
-        const n = Number(value);
-        if (!Number.isFinite(n) || n <= 0) return 0;
-        return Math.max(1, Math.min(1000, Math.round(n)));
-      }
-
-      function normalizeVoteDraftTimerMinutes(value) {
-        const n = Number(value);
-        if (!Number.isFinite(n) || n <= 0) return 0;
-        return Math.max(1, Math.min(720, Math.round(n)));
+      function normalizeIntDraft(value, min, max) {
+        const n = parseInt(value, 10);
+        return isNaN(n) ? min : Math.min(Math.max(n, min), max);
       }
 
       function formatRemainingTime(sec) {
@@ -248,9 +229,9 @@ const ADMIN_ACTIONS = new Set([
           const optsRaw = Array.isArray(appState.voteDraftOptionList) ? appState.voteDraftOptionList : [];
           const opts = optsRaw.map((x) => String(x || '').slice(0, 80));
           const targetVotes = Math.max(10, Math.min(1000, Number(appState.voteDraftTargetVotes || 50) || 50));
-          const maxVotesPerUser = normalizeVoteDraftMaxVotes(appState.voteDraftMaxVotesPerUser);
-          const timerMinutes = normalizeVoteDraftTimerMinutes(appState.voteDraftTimerMinutes);
-          localStorage.setItem(voteDraftKey(), JSON.stringify({ q, opts, targetVotes, maxVotesPerUser, timerMinutes }));
+          const maxVotesPerUser = normalizeIntDraft(appState.voteDraftMaxVotesPerUser, 0, 1000);
+          const timerMinutes = normalizeIntDraft(appState.voteDraftTimerMinutes, 0, 720);
+          localStorage.setItem(storageKey(VOTE_DRAFT_PREFIX), JSON.stringify({ q, opts, targetVotes, maxVotesPerUser, timerMinutes }));
         } catch (e) {}
 
         if (voteDraftSaveTimer) clearTimeout(voteDraftSaveTimer);
@@ -262,8 +243,8 @@ const ADMIN_ACTIONS = new Set([
               questionText: String(appState.voteDraftQuestion || '').slice(0, 200),
               options: (Array.isArray(appState.voteDraftOptionList) ? appState.voteDraftOptionList : []).map((x) => String(x || '').slice(0, 80)),
               targetVotes: Math.max(10, Math.min(1000, Number(appState.voteDraftTargetVotes || 50) || 50)),
-              maxVotesPerUser: normalizeVoteDraftMaxVotes(appState.voteDraftMaxVotesPerUser),
-              timerMinutes: normalizeVoteDraftTimerMinutes(appState.voteDraftTimerMinutes),
+              maxVotesPerUser: normalizeIntDraft(appState.voteDraftMaxVotesPerUser, 0, 1000),
+              timerMinutes: normalizeIntDraft(appState.voteDraftTimerMinutes, 0, 720),
             });
           } catch (e) {}
         }, 300);
@@ -277,15 +258,15 @@ const ADMIN_ACTIONS = new Set([
         appState.voteDraftTimerMinutes = 0;
 
         try {
-          const raw = localStorage.getItem(voteDraftKey());
+          const raw = localStorage.getItem(storageKey(VOTE_DRAFT_PREFIX));
           if (raw) {
             const parsed = JSON.parse(raw);
             const q = String((parsed && parsed.q) || '').trim();
             const opts = Array.isArray(parsed && parsed.opts) ? parsed.opts : [];
             const cleaned = opts.map((x) => String(x || '').trim()).filter(Boolean).slice(0, 6);
             const tv = Math.max(10, Math.min(1000, Number(parsed && parsed.targetVotes || 50) || 50));
-            const mv = normalizeVoteDraftMaxVotes(parsed && parsed.maxVotesPerUser);
-            const tm = normalizeVoteDraftTimerMinutes(parsed && parsed.timerMinutes);
+            const mv = normalizeIntDraft(parsed && parsed.maxVotesPerUser, 0, 1000);
+            const tm = normalizeIntDraft(parsed && parsed.timerMinutes, 0, 720);
             appState.voteDraftQuestion = q;
             appState.voteDraftOptionList = cleaned.length >= 2 ? cleaned : ['選択肢A', '選択肢B'];
             appState.voteDraftTargetVotes = tv;
@@ -308,15 +289,15 @@ const ADMIN_ACTIONS = new Set([
             const opts = Array.isArray(draft.options) ? draft.options : [];
             const cleaned = opts.map((x) => String(x || '').trim()).filter(Boolean).slice(0, 6);
             const tv = Math.max(10, Math.min(1000, Number(draft.targetVotes || 50) || 50));
-            const mv = normalizeVoteDraftMaxVotes(draft.maxVotesPerUser);
-            const tm = normalizeVoteDraftTimerMinutes(draft.timerMinutes);
+            const mv = normalizeIntDraft(draft.maxVotesPerUser, 0, 1000);
+            const tm = normalizeIntDraft(draft.timerMinutes, 0, 720);
             appState.voteDraftQuestion = q;
             appState.voteDraftOptionList = cleaned.length >= 2 ? cleaned : ['選択肢A', '選択肢B'];
             appState.voteDraftTargetVotes = tv;
             appState.voteDraftMaxVotesPerUser = mv;
             appState.voteDraftTimerMinutes = tm;
             try {
-              localStorage.setItem(voteDraftKey(), JSON.stringify({ q: appState.voteDraftQuestion, opts: appState.voteDraftOptionList, targetVotes: appState.voteDraftTargetVotes, maxVotesPerUser: appState.voteDraftMaxVotesPerUser, timerMinutes: appState.voteDraftTimerMinutes }));
+              localStorage.setItem(storageKey(VOTE_DRAFT_PREFIX), JSON.stringify({ q: appState.voteDraftQuestion, opts: appState.voteDraftOptionList, targetVotes: appState.voteDraftTargetVotes, maxVotesPerUser: appState.voteDraftMaxVotesPerUser, timerMinutes: appState.voteDraftTimerMinutes }));
             } catch (e) {}
           }
         } catch (e) {}
@@ -343,16 +324,16 @@ const ADMIN_ACTIONS = new Set([
       }
 
       function getDisplayName() {
-        return normalizeDisplayName(localStorage.getItem(displayNameKey()) || '匿名');
+        return normalizeDisplayName(localStorage.getItem(storageKey(DISPLAY_NAME_PREFIX)) || '匿名');
       }
 
       function setDisplayName(name) {
-        localStorage.setItem(displayNameKey(), normalizeDisplayName(name));
+        localStorage.setItem(storageKey(DISPLAY_NAME_PREFIX), normalizeDisplayName(name));
       }
 
       function loadReadState() {
         try {
-          const raw = localStorage.getItem(readStateKey());
+          const raw = localStorage.getItem(storageKey(READ_STATE_PREFIX));
           const arr = raw ? JSON.parse(raw) : [];
           if (Array.isArray(arr)) {
             appState.readQuestionIds = new Set(arr.map((x) => String(x)));
@@ -363,7 +344,7 @@ const ADMIN_ACTIONS = new Set([
       }
 
       function saveReadState() {
-        localStorage.setItem(readStateKey(), JSON.stringify(Array.from(appState.readQuestionIds)));
+        localStorage.setItem(storageKey(READ_STATE_PREFIX), JSON.stringify(Array.from(appState.readQuestionIds)));
       }
 
       function isQuestionRead(id) {
@@ -841,7 +822,7 @@ function getAdminKeyCached() {
           const rawLabels = Array.isArray(res.config && res.config.metricLabels) ? res.config.metricLabels : ['満足度', '理解度'];
           const normalizedLabels = normalizeMetricLabels(rawLabels);
           const fromApiSurvey = String((res.config && res.config.surveyUrl) || '').trim();
-          const fromLocalSurvey = String(localStorage.getItem(surveyUrlKey()) || '').trim();
+          const fromLocalSurvey = String(localStorage.getItem(storageKey(SURVEY_URL_PREFIX)) || '').trim();
           sessionConfig = {
             anonymousOnly: !!(res.config && res.config.anonymousOnly),
             tipUrl: String((res.config && res.config.tipUrl) || '').trim(),
@@ -910,7 +891,7 @@ function getAdminKeyCached() {
             surveyUrl: savedSurvey,
             metricLabels: normalizeMetricLabels(res.config && res.config.metricLabels),
           };
-          if (savedSurvey) localStorage.setItem(surveyUrlKey(), savedSurvey); else localStorage.removeItem(surveyUrlKey());
+          if (savedSurvey) localStorage.setItem(storageKey(SURVEY_URL_PREFIX), savedSurvey); else localStorage.removeItem(storageKey(SURVEY_URL_PREFIX));
             url = sessionConfig.tipUrl;
           } catch (e) {
             alert(e.message || '投げ銭リンクの保存に失敗しました');
@@ -1036,23 +1017,36 @@ function getAdminKeyCached() {
         }
       }
 
-      async function deleteMyQuestion(id) {
-        const before = appState.currentQuestions.slice();
-        appState.currentQuestions = appState.currentQuestions.filter((q) => q.id !== id);
-        renderList(appState.currentQuestions);
+      async function deleteItem(action, id, optimisticFn, rollbackFn) {
+        optimisticFn();
         try {
-          const req = { questionId: id, authorToken };
-          if (!isMobileLayout()) {
-            const adminKey = getAdminKeyCached();
-            if (adminKey) req.adminKey = adminKey;
-          }
-          await api('deleteMyQuestion', req);
+          await api(action, id);
           triggerFastSync();
         } catch (e) {
-          appState.currentQuestions = before;
-          renderList(appState.currentQuestions);
-          alert(e.message || '削除失敗');
+          rollbackFn(e);
         }
+      }
+
+      async function deleteMyQuestion(id) {
+        const before = appState.currentQuestions.slice();
+        const req = { questionId: id, authorToken };
+        if (!isMobileLayout()) {
+          const adminKey = getAdminKeyCached();
+          if (adminKey) req.adminKey = adminKey;
+        }
+        await deleteItem(
+          'deleteMyQuestion',
+          req,
+          () => {
+            appState.currentQuestions = appState.currentQuestions.filter((q) => q.id !== id);
+            renderList(appState.currentQuestions);
+          },
+          (e) => {
+            appState.currentQuestions = before;
+            renderList(appState.currentQuestions);
+            alert((e && e.message) || '削除失敗');
+          }
+        );
       }
 
       async function voteReply(questionId, replyId) {
@@ -1085,24 +1079,27 @@ function getAdminKeyCached() {
 
       async function deleteMyReply(questionId, replyId) {
         const before = appState.currentQuestions.slice();
-        appState.currentQuestions = appState.currentQuestions.map((q) => {
-          if (q.id !== questionId) return q;
-          return { ...q, replies: (q.replies || []).filter((r) => r.id !== replyId) };
-        });
-        renderList(appState.currentQuestions);
-        try {
-          const req = { replyId, authorToken };
-          if (!isMobileLayout()) {
-            const adminKey = getAdminKeyCached();
-            if (adminKey) req.adminKey = adminKey;
-          }
-          await api('deleteMyReply', req);
-          triggerFastSync();
-        } catch (e) {
-          appState.currentQuestions = before;
-          renderList(appState.currentQuestions);
-          alert(e.message || '返信削除失敗');
+        const req = { replyId, authorToken };
+        if (!isMobileLayout()) {
+          const adminKey = getAdminKeyCached();
+          if (adminKey) req.adminKey = adminKey;
         }
+        await deleteItem(
+          'deleteMyReply',
+          req,
+          () => {
+            appState.currentQuestions = appState.currentQuestions.map((q) => {
+              if (q.id !== questionId) return q;
+              return { ...q, replies: (q.replies || []).filter((r) => r.id !== replyId) };
+            });
+            renderList(appState.currentQuestions);
+          },
+          (e) => {
+            appState.currentQuestions = before;
+            renderList(appState.currentQuestions);
+            alert((e && e.message) || '返信削除失敗');
+          }
+        );
       }
 
       async function editQuestionAsAdmin(questionId) {
@@ -1645,7 +1642,7 @@ function getAdminKeyCached() {
         if (mode === 'unlimited') {
           appState.voteDraftMaxVotesPerUser = 0;
         } else {
-          const base = normalizeVoteDraftMaxVotes(appState.voteDraftMaxVotesPerUser) || 5;
+          const base = normalizeIntDraft(appState.voteDraftMaxVotesPerUser, 0, 1000) || 5;
           appState.voteDraftMaxVotesPerUser = base;
         }
         saveVoteDraft();
@@ -1653,12 +1650,12 @@ function getAdminKeyCached() {
       }
 
       function setVoteMaxDraft(value) {
-        appState.voteDraftMaxVotesPerUser = normalizeVoteDraftMaxVotes(value);
+        appState.voteDraftMaxVotesPerUser = normalizeIntDraft(value, 0, 1000);
         saveVoteDraft();
       }
 
       function setVoteTimerDraft(value) {
-        appState.voteDraftTimerMinutes = normalizeVoteDraftTimerMinutes(value);
+        appState.voteDraftTimerMinutes = normalizeIntDraft(value, 0, 720);
         saveVoteDraft();
       }
 
@@ -1699,8 +1696,8 @@ function getAdminKeyCached() {
             options,
             pollType: "CHOICE",
             targetVotes: Math.max(10, Math.min(1000, Number(appState.voteDraftTargetVotes || 50) || 50)),
-            maxVotesPerUser: normalizeVoteDraftMaxVotes(appState.voteDraftMaxVotesPerUser),
-            timerMinutes: normalizeVoteDraftTimerMinutes(appState.voteDraftTimerMinutes),
+            maxVotesPerUser: normalizeIntDraft(appState.voteDraftMaxVotesPerUser, 0, 1000),
+            timerMinutes: normalizeIntDraft(appState.voteDraftTimerMinutes, 0, 720),
           });
           if (createRes && typeof createRes.pollCount !== 'undefined') {
             appState.votePollCount = Math.max(0, Number(createRes.pollCount || 0));
@@ -2481,19 +2478,21 @@ function getAdminKeyCached() {
         return turbo ? TURBO_POLL_AUDIENCE_MS : POLL_AUDIENCE_MS;
       }
 
+      function pollAllData() {
+        // 直列待ちを避けて、1サイクルの待機時間を短縮する
+        return Promise.allSettled([
+          loadQuestions(),
+          loadPoll(),
+          loadVotePoll(),
+        ]);
+      }
+
       function scheduleNextPoll() {
         if (pollTimer) clearTimeout(pollTimer);
-        pollTimer = setTimeout(async () => {
-          try {
-            await loadQuestions();
-          } catch (_e) { /* loadQuestions内でハンドル済み */ }
-          try {
-            await loadPoll();
-          } catch (_e) { /* ポーリング継続のため握りつぶす */ }
-          try {
-            await loadVotePoll();
-          } catch (_e) { /* ポーリング継続のため握りつぶす */ }
-          scheduleNextPoll();
+        pollTimer = setTimeout(() => {
+          pollAllData().finally(() => {
+            scheduleNextPoll();
+          });
         }, currentPollInterval());
       }
 
