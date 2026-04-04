@@ -1456,7 +1456,7 @@ function getAdminKeyCached() {
                     <div class="poll-input-label">${esc(m.label)}</div>
                     <div class="poll-input-controls">
                       <span class="poll-meta">あなた ${myHearts}/${heartLimit}</span>
-                      <button class="ghost like-count-btn vote-action-btn" onclick="submitLiveHeart('${esc(m.kind)}')" ${atLimit ? 'disabled aria-disabled="true"' : ''}><span class="heart-mark" aria-hidden="true">♥︎</span> +1</button>
+                      <button class="ghost like-count-btn vote-action-btn" onclick="submitLiveHeart('${esc(m.kind)}')" ${atLimit ? 'disabled aria-disabled="true"' : ''}><span class="heart-mark" aria-hidden="true">♥︎</span> ${myHearts}</button>
                     </div>
                   </div>
                 </div>`;

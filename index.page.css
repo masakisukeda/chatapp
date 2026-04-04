@@ -447,6 +447,13 @@
           padding: 7px 12px;
           font-size: var(--font-sm);
         }
+        .like-count-btn.vote-action-btn {
+          min-width: 44px;
+          min-height: var(--control-h);
+          border-radius: 999px;
+          padding: 7px 10px;
+          font-variant-numeric: tabular-nums;
+        }
         .poll-input-controls .like-count-btn.vote-action-btn {
           margin-left: auto;
         }
@@ -521,9 +528,6 @@
         }
         .q-item-audience .reply-item .reply-actions.reply-actions-audience .like-count-btn {
           min-width: 44px;
-          min-height: var(--control-h);
-          border-radius: 999px;
-          padding: 7px 10px;
         }
         body[data-theme="dark"] .q-item-audience .reply-item .reply-actions.reply-actions-audience .like-count-btn {
           border-color: rgba(247, 249, 252, 0.4);
