@@ -30,6 +30,7 @@ cd /Users/masakisukeda/Library/CloudStorage/GoogleDrive-masaki.sukeda@gmail.com/
 - モーダルやフォーム挙動は、既存仕様を崩さない（勝手に閉じる条件を増やさない）。
 - `api.php` は副作用が大きいので、修正時は入力/保存/読み出し経路を必ず確認する。
 - `data/admin_key.txt` など認証系ファイルを不用意に編集しない。
+- `lp/index.html` と `manual.html` の「最近のアップデート」は最大 `3` 件までにする（新規追加時は先頭追加＋最古を削除）。
 
 ## 4. 反映前チェック
 - 画面確認: `index.html` / `manual.html`
