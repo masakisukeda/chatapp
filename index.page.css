@@ -412,6 +412,9 @@
 
       /* Mobile: align submit-like actions to the right edge */
       @media (max-width: 700px) {
+        body[data-theme="dark"] .topbar {
+          background: transparent;
+        }
         .vote-action-btn {
           min-height: var(--control-h);
           padding: 7px 12px;
