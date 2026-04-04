@@ -1919,11 +1919,14 @@ function getAdminKeyCached() {
               <div class="replies">${repliesHtml}</div>
               <div class="reply-form reply-form-audience">
                 <input id="reply-input-${esc(q.id)}" placeholder="コメントに返信">
-                <button class="ghost" onclick="submitReply('${esc(q.id)}')">返信</button>
+                <div class="reply-form-actions">
+                  <button class="ghost" onclick="submitReply('${esc(q.id)}')">返信</button>
+                  <button class="ghost like-count-btn vote-action-btn q-like-mobile" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes}</button>
+                </div>
               </div>
             </div>
             <div class="q-side q-side-audience">
-              <button class="ghost like-count-btn vote-action-btn" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes}</button>
+              <button class="ghost like-count-btn vote-action-btn q-like-desktop" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes}</button>
             </div>
           </article>`;
       }

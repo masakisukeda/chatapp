@@ -249,15 +249,21 @@
       .reply-actions-audience {
         justify-content: flex-end;
       }
-      .reply-form-audience > button {
-        justify-self: end;
+      .reply-form-actions {
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 6px;
+      }
+      .reply-form-actions > button {
+        white-space: nowrap;
+      }
+      .q-like-mobile {
+        display: none;
       }
       .heart-mark {
         color: var(--brand) !important;
         -webkit-text-fill-color: var(--brand) !important;
-        font-family: "Times New Roman", "Hiragino Sans", "Yu Gothic", serif;
-        font-variant-emoji: text;
-        font-weight: 700;
       }
       .vote-action-btn {
         display: inline-flex;
@@ -279,19 +285,21 @@
           min-height: var(--control-h);
           font-size: var(--font-sm);
         }
-        .q-item-audience {
-          position: relative;
-          padding-bottom: 62px;
-        }
         .q-item-audience .q-side-audience {
-          position: absolute;
-          right: 16px;
-          bottom: 16px;
-          width: auto;
+          display: none;
+        }
+        .reply-form-audience {
+          grid-template-columns: 1fr auto;
+          align-items: center;
+        }
+        .reply-form-audience .reply-form-actions {
           justify-content: flex-end;
         }
-        .q-item-audience .q-side-audience .like-count-btn {
-          margin-left: 0;
+        .reply-form-audience .q-like-mobile {
+          display: inline-flex;
+        }
+        .reply-form-audience .reply-form-actions > button {
+          min-height: var(--control-h);
         }
         .reply-actions-audience {
           width: 100%;
@@ -300,12 +308,23 @@
         .reply-actions-audience .like-count-btn {
           margin-left: auto;
         }
-        .reply-form {
-          grid-template-columns: 1fr auto;
-          align-items: center;
+        .poll-q {
+          font-size: 22px;
         }
-        .reply-form > button {
-          justify-self: end;
+        .poll-input-label,
+        .poll-opt-label,
+        .poll-result-label,
+        .poll-result-value,
+        .poll-meta,
+        .poll-mine,
+        .poll-result-item,
+        .poll-topic-item,
+        .poll-input-controls .poll-meta,
+        .poll-input-controls .poll-heart-btn {
+          font-size: 14px;
+        }
+        .poll-heart-count {
+          font-size: 12px;
         }
         .poll-topic-actions {
           justify-content: flex-end;
