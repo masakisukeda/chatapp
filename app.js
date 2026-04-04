@@ -2005,6 +2005,12 @@ function getAdminKeyCached() {
         };
 
         questions.forEach((q) => {
+          const replies = Array.isArray(q.replies) ? q.replies : [];
+          const latestReplyTs = replies.reduce((maxTs, r) => {
+            const ts = toTime(r && r.createdAt);
+            return ts > maxTs ? ts : maxTs;
+          }, 0);
+          const latestQuestionTs = Math.max(toTime(q.createdAt), latestReplyTs);
           const statusChip = q.status === 'ANSWERED'
             ? '<span class="status-chip answered">回答済み</span>'
             : '';
@@ -2015,7 +2021,7 @@ function getAdminKeyCached() {
             : '';
           entries.push({
             type: 'q',
-            ts: toTime(q.createdAt),
+            ts: latestQuestionTs,
             html: `
               <article class="card feed-row feed-row-question">
                 <div class="feed-main">
@@ -2032,8 +2038,6 @@ function getAdminKeyCached() {
                 </div>
               </article>`,
           });
-
-          const replies = Array.isArray(q.replies) ? q.replies : [];
           replies.forEach((r) => {
             const canDeleteReply = canForceDelete || !!r.isMine;
             const replyDeleteAction = canDeleteReply
