@@ -134,6 +134,56 @@
         .audience-flat-list .feed-row-reply .feed-kind {
           color: #3f5d7a;
         }
+        /* ===== PC typography normalization ===== */
+        .hero p,
+        .q-meta,
+        .reply-meta,
+        .audience-flat-list .feed-meta-line,
+        .audience-flat-list .feed-parent-line,
+        .poll-meta,
+        .poll-mine,
+        .vote-row-meta,
+        .vote-meta-sub,
+        .muted-note {
+          font-size: 14px;
+          font-weight: 500;
+          line-height: 1.55;
+        }
+        .q-title,
+        .reply-text,
+        .audience-flat-list .feed-text,
+        .poll-opt-label,
+        .poll-input-label,
+        .poll-result-label,
+        .poll-result-value,
+        .vote-label {
+          font-size: 18px;
+          font-weight: 600;
+          line-height: 1.5;
+        }
+        .poll-q,
+        .presenter .q-title {
+          font-size: 28px !important;
+          font-weight: 700;
+          line-height: 1.45;
+        }
+        .view-tab,
+        .admin-summary,
+        .badge,
+        .audience-flat-list .feed-kind,
+        .audience-flat-list .feed-action-btn,
+        .poll-result-item,
+        .poll-topic-item,
+        .poll-input-controls .poll-meta,
+        .vote,
+        .like-count-btn {
+          font-size: 14px;
+          font-weight: 600;
+        }
+        .poll-heart-count {
+          font-size: 13px;
+          font-weight: 600;
+        }
       }
       @media (min-width: 1024px) {
         /* 1024px以上: topbar-innerをflex1行にしてる既存CSS(display:contents)を活かしつつ、
