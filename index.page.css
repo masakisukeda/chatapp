@@ -262,12 +262,24 @@
 
       /* Mobile: align submit-like actions to the right edge */
       @media (max-width: 700px) {
-        .q-side-audience,
+        .q-item-audience {
+          position: relative;
+          padding-bottom: 62px;
+        }
+        .q-item-audience .q-side-audience {
+          position: absolute;
+          right: 16px;
+          bottom: 16px;
+          width: auto;
+          justify-content: flex-end;
+        }
+        .q-item-audience .q-side-audience .like-count-btn {
+          margin-left: 0;
+        }
         .reply-actions-audience {
           width: 100%;
           justify-content: flex-end;
         }
-        .q-side-audience .like-count-btn,
         .reply-actions-audience .like-count-btn {
           margin-left: auto;
         }

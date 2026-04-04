@@ -11,7 +11,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="./img/apple-touch-icon.png?v=20260327b">
     <title>Chat.app</title>
     <link rel="stylesheet" href="./ui.css?v=20260403a">
-    <link rel="stylesheet" href="./index.page.css?v=20260404c">
+    <link rel="stylesheet" href="./index.page.css?v=20260404d">
   </head>
   <body>
     <div class="topbar">
@@ -2030,7 +2030,7 @@ function getAdminKeyCached() {
         `;
         }).join('');
         return `
-          <article class="card q-item${questionSwipeClass}" data-qid="${esc(q.id)}">
+          <article class="card q-item q-item-audience${questionSwipeClass}" data-qid="${esc(q.id)}">
             <div class="q-main">
               <p class="q-title">${linkifyText(q.questionText)}</p>
               <div class="q-meta">${pinChip}${statusChip}${esc(q.displayName)} ・ ${new Date(q.createdAt).toLocaleString()}${deleteMeta}</div>
