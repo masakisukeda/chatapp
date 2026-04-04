@@ -2072,7 +2072,7 @@ function getAdminKeyCached() {
             <p class="reply-text">${linkifyText(r.replyText)}</p>
             <div class="reply-meta">${esc(r.displayName)} ・ ${new Date(r.createdAt).toLocaleString()}${replyDeleteMeta}</div>
             <div class="reply-actions reply-actions-audience">
-              <button class="ghost like-count-btn vote-action-btn" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${r.votes || 0}</button>
+              <button class="ghost like-count-btn vote-action-btn mobile-post-btn" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${r.votes || 0}</button>
             </div>
           </div>
         `;
@@ -2085,9 +2085,9 @@ function getAdminKeyCached() {
               <div class="q-meta">${pinChip}${statusChip}${esc(q.displayName)} ・ ${new Date(q.createdAt).toLocaleString()}${deleteMeta}</div>
               <div class="replies">${repliesHtml}</div>
               <div class="reply-form reply-form-audience">
-                <div class="reply-form-actions">
-                  <button class="ghost" onclick="submitReply('${esc(q.id)}')">返信</button>
-                  <button class="ghost like-count-btn vote-action-btn q-like-mobile" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes}</button>
+                <div class="reply-form-actions mobile-post-btn-group">
+                  <button class="ghost mobile-post-btn" onclick="submitReply('${esc(q.id)}')">返信</button>
+                  <button class="ghost like-count-btn vote-action-btn q-like-mobile mobile-post-btn" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes}</button>
                 </div>
               </div>
             </div>
