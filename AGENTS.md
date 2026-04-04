@@ -40,6 +40,17 @@ cd /Users/masakisukeda/Library/CloudStorage/GoogleDrive-masaki.sukeda@gmail.com/
 php -l api.php
 ```
 
+## 4.1 デプロイクイックチェック（時短）
+- デプロイ前に公開反映先を確認:
+  - 正: `/public_html/drsp.cc/chat`
+  - 旧/非公開側: `/virtual/sukeda/public_html/chat` `/virtual/sukeda/public_html/drsp.cc/chat`
+- デプロイ後は以下を実行して、HTTPとAPI契約をまとめて確認:
+```bash
+bash scripts/check-deploy-chat.sh
+```
+- `getPoll` の戻り値は `pollList` を含むこと（導線修正の回帰チェック）。
+- GitHub API監視で `403` が出る場合は未認証レート制限を疑う（`gh` または認証トークン利用）。
+
 ## 5. NG
 - 無関係ファイルの一括整形。
 - DBファイルの直接破壊。

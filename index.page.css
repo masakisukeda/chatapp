@@ -243,6 +243,16 @@
         order: 2;
       }
 
+      .q-side-audience {
+        justify-content: flex-end;
+      }
+      .reply-actions-audience {
+        justify-content: flex-end;
+      }
+      .reply-form-audience > button {
+        justify-self: end;
+      }
+
       /* Mobile: align submit-like actions to the right edge */
       @media (max-width: 700px) {
         .reply-form {

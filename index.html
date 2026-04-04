@@ -2024,7 +2024,7 @@ function getAdminKeyCached() {
           <div class="reply-item${replySwipeClass}" data-rid="${esc(r.id)}" data-qid="${esc(q.id)}">
             <p class="reply-text">${linkifyText(r.replyText)}</p>
             <div class="reply-meta">${esc(r.displayName)} ・ ${new Date(r.createdAt).toLocaleString()}${replyDeleteMeta}</div>
-            <div class="reply-actions">
+            <div class="reply-actions reply-actions-audience">
               <button class="ghost like-count-btn" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')">❤️ ${r.votes || 0}</button>
             </div>
           </div>
@@ -2036,12 +2036,12 @@ function getAdminKeyCached() {
               <p class="q-title">${linkifyText(q.questionText)}</p>
               <div class="q-meta">${pinChip}${statusChip}${esc(q.displayName)} ・ ${new Date(q.createdAt).toLocaleString()}${deleteMeta}</div>
               <div class="replies">${repliesHtml}</div>
-              <div class="reply-form">
+              <div class="reply-form reply-form-audience">
                 <input id="reply-input-${esc(q.id)}" placeholder="コメントに返信">
                 <button class="ghost" onclick="submitReply('${esc(q.id)}')">返信</button>
               </div>
             </div>
-            <div class="q-side">
+            <div class="q-side q-side-audience">
               <button class="ghost like-count-btn" onclick="vote('${esc(q.id)}')">❤️ ${q.votes}</button>
             </div>
           </article>`;
