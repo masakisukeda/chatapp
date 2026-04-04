@@ -7,6 +7,7 @@
 - ローカル編集元: `/Users/masakisukeda/Library/CloudStorage/GoogleDrive-masaki.sukeda@gmail.com/マイドライブ/Playground/AGENTS.md`
 - スコープは `/app` `/chat` `/dic` `/mng` のみ。無関係フォルダの編集・デプロイは禁止。
 - 通常デプロイは `main` へ push -> GitHub Actions で実施（直接FTPアップロードは禁止）。
+- `/chat` の公開反映先は `/virtual/sukeda/public_html/drsp.cc/chat`（`/virtual/sukeda/public_html/chat` は非公開側の旧パス）。
 
 ## 1. 対象
 - 公開URL: `https://drsp.cc/chat/`
