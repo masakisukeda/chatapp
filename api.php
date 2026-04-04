@@ -146,6 +146,8 @@ function handleGet(PDO $pdo): void
             'voteReply',
             'deleteMyQuestion',
             'deleteMyReply',
+            'editQuestion',
+            'editReply',
             'updateQuestionMeta',
             'verifyAdminKey',
             'getSessionConfig',
@@ -215,6 +217,14 @@ function handlePost(PDO $pdo): void
         case 'updateQuestionMeta':
             requireAdminPayload($payload);
             respond(updateQuestionMeta($pdo, $payload));
+            return;
+        case 'editQuestion':
+            requireAdminPayload($payload);
+            respond(editQuestion($pdo, $payload));
+            return;
+        case 'editReply':
+            requireAdminPayload($payload);
+            respond(editReply($pdo, $payload));
             return;
         case 'verifyAdminKey':
             requireAdminPayload($payload);
@@ -637,6 +647,64 @@ function deleteMyReply(PDO $pdo, array $payload): array
 
         execStmt($pdo, 'DELETE FROM replies WHERE id = :id', [':id' => $replyId]);
         execStmt($pdo, 'DELETE FROM votes WHERE entity_id = :id', [':id' => $replyId]);
+        bumpSessionRevision($pdo, (string) $row['session_code']);
+        $pdo->commit();
+        return ['ok' => true];
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
+}
+
+function editQuestion(PDO $pdo, array $payload): array
+{
+    $questionId = sanitize($payload['questionId'] ?? '', 64);
+    $questionText = sanitize($payload['questionText'] ?? '', 400);
+    if ($questionId === '' || $questionText === '') {
+        throw new RuntimeException('質問編集パラメータが不正です');
+    }
+
+    $pdo->beginTransaction();
+    try {
+        $row = fetchOne($pdo, 'SELECT id, session_code FROM questions WHERE id = :id LIMIT 1', [':id' => $questionId]);
+        if (!$row) {
+            throw new RuntimeException('対象の質問が見つかりません');
+        }
+        execStmt($pdo, 'UPDATE questions SET question_text = :question_text WHERE id = :id', [
+            ':question_text' => $questionText,
+            ':id' => $questionId,
+        ]);
+        bumpSessionRevision($pdo, (string) $row['session_code']);
+        $pdo->commit();
+        return ['ok' => true];
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
+}
+
+function editReply(PDO $pdo, array $payload): array
+{
+    $replyId = sanitize($payload['replyId'] ?? '', 64);
+    $replyText = sanitize($payload['replyText'] ?? '', 300);
+    if ($replyId === '' || $replyText === '') {
+        throw new RuntimeException('コメント編集パラメータが不正です');
+    }
+
+    $pdo->beginTransaction();
+    try {
+        $row = fetchOne($pdo, 'SELECT id, session_code FROM replies WHERE id = :id LIMIT 1', [':id' => $replyId]);
+        if (!$row) {
+            throw new RuntimeException('対象のコメントが見つかりません');
+        }
+        execStmt($pdo, 'UPDATE replies SET reply_text = :reply_text WHERE id = :id', [
+            ':reply_text' => $replyText,
+            ':id' => $replyId,
+        ]);
         bumpSessionRevision($pdo, (string) $row['session_code']);
         $pdo->commit();
         return ['ok' => true];

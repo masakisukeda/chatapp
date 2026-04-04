@@ -55,6 +55,8 @@
       const pendingReplies = new Map();
 const ADMIN_ACTIONS = new Set([
         'updateQuestionMeta',
+        'editQuestion',
+        'editReply',
         'setSessionConfig',
         'createPoll',
         'updatePollTarget',
@@ -1094,6 +1096,65 @@ function getAdminKeyCached() {
         }
       }
 
+      async function editQuestionAsAdmin(questionId) {
+        const target = currentQuestions.find((q) => q.id === questionId);
+        if (!target) return;
+        const currentText = String(target.questionText || '');
+        const raw = window.prompt('投稿内容を編集してください', currentText);
+        if (raw == null) return;
+        const nextText = String(raw || '').trim();
+        if (!nextText) {
+          alert('投稿内容を入力してください');
+          return;
+        }
+        if (nextText === currentText) return;
+
+        const before = currentQuestions.slice();
+        currentQuestions = currentQuestions.map((q) => (q.id === questionId ? { ...q, questionText: nextText } : q));
+        renderList(currentQuestions);
+        try {
+          await api('editQuestion', { questionId, questionText: nextText });
+          triggerFastSync();
+        } catch (e) {
+          currentQuestions = before;
+          renderList(currentQuestions);
+          alert(e.message || '投稿編集失敗');
+        }
+      }
+
+      async function editReplyAsAdmin(questionId, replyId) {
+        const targetQuestion = currentQuestions.find((q) => q.id === questionId);
+        if (!targetQuestion) return;
+        const replies = Array.isArray(targetQuestion.replies) ? targetQuestion.replies : [];
+        const targetReply = replies.find((r) => r.id === replyId);
+        if (!targetReply) return;
+        const currentText = String(targetReply.replyText || '');
+        const raw = window.prompt('コメント内容を編集してください', currentText);
+        if (raw == null) return;
+        const nextText = String(raw || '').trim();
+        if (!nextText) {
+          alert('コメント内容を入力してください');
+          return;
+        }
+        if (nextText === currentText) return;
+
+        const before = currentQuestions.slice();
+        currentQuestions = currentQuestions.map((q) => {
+          if (q.id !== questionId) return q;
+          const nextReplies = (q.replies || []).map((r) => (r.id === replyId ? { ...r, replyText: nextText } : r));
+          return { ...q, replies: nextReplies };
+        });
+        renderList(currentQuestions);
+        try {
+          await api('editReply', { replyId, replyText: nextText });
+          triggerFastSync();
+        } catch (e) {
+          currentQuestions = before;
+          renderList(currentQuestions);
+          alert(e.message || 'コメント編集失敗');
+        }
+      }
+
       async function submitReply(questionId) {
         const input = document.getElementById(`reply-input-${questionId}`);
         if (!input) return;
@@ -2014,6 +2075,9 @@ function getAdminKeyCached() {
             : '';
           const pinChip = q.pinned ? '<span class="status-chip">📍</span>' : '';
           const canDeleteQuestion = canForceDelete || !!q.isMine;
+          const questionEditAction = canForceDelete
+            ? `<button class="ghost feed-action-btn" type="button" onclick="editQuestionAsAdmin('${esc(q.id)}')">編集</button>`
+            : '';
           const questionDeleteAction = canDeleteQuestion
             ? `<button class="ghost feed-action-btn" type="button" onclick="deleteMyQuestion('${esc(q.id)}')">削除</button>`
             : '';
@@ -2032,12 +2096,16 @@ function getAdminKeyCached() {
                 <div class="feed-actions">
                   <button class="ghost feed-action-btn" type="button" onclick="submitReplyQuick('${esc(q.id)}')">返信</button>
                   <button class="ghost like-count-btn vote-action-btn feed-action-btn" type="button" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes || 0}</button>
+                  ${questionEditAction}
                   ${questionDeleteAction}
                 </div>
               </article>`,
           });
           replies.forEach((r) => {
             const canDeleteReply = canForceDelete || !!r.isMine;
+            const replyEditAction = canForceDelete
+              ? `<button class="ghost feed-action-btn" type="button" onclick="editReplyAsAdmin('${esc(q.id)}','${esc(r.id)}')">編集</button>`
+              : '';
             const replyDeleteAction = canDeleteReply
               ? `<button class="ghost feed-action-btn" type="button" onclick="deleteMyReply('${esc(q.id)}','${esc(r.id)}')">削除</button>`
               : '';
@@ -2056,6 +2124,7 @@ function getAdminKeyCached() {
                   </div>
                   <div class="feed-actions">
                     <button class="ghost like-count-btn vote-action-btn feed-action-btn" type="button" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${r.votes || 0}</button>
+                    ${replyEditAction}
                     ${replyDeleteAction}
                   </div>
                 </article>`,
