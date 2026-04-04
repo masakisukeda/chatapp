@@ -427,17 +427,22 @@
         .q-item-audience .q-side-audience {
           display: none;
         }
-        .reply-item {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
+        .q-item-audience .reply-item {
+          position: relative;
+          display: block;
           padding: 8px 10px;
         }
-        .reply-actions {
-          grid-column: auto;
-          grid-row: auto;
-          margin-top: 6px;
-          align-items: center;
+        .q-item-audience .reply-item .reply-text,
+        .q-item-audience .reply-item .reply-meta {
+          padding-right: 64px;
+        }
+        .q-item-audience .reply-item .reply-actions.reply-actions-audience {
+          position: absolute;
+          top: 8px;
+          right: 10px;
+          width: auto;
+          margin-top: 0;
+          align-items: flex-start;
           justify-content: flex-end;
         }
         .reply-form-audience {
@@ -453,12 +458,8 @@
         .reply-form-audience .reply-form-actions > button {
           min-height: var(--control-h);
         }
-        .reply-actions-audience {
-          width: 100%;
-          justify-content: flex-end;
-        }
         .reply-actions-audience .like-count-btn {
-          margin-left: auto;
+          margin-left: 0;
         }
         .poll-q {
           font-size: 22px;
