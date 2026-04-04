@@ -703,10 +703,6 @@ function getAdminKeyCached() {
         return data;
       }
 
-      async function sleep_(ms) {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-      }
-
       async function postApiWithRetry_(url, action, payload, retries) {
         let lastErr = null;
         const maxRetries = Number.isFinite(retries) ? retries : 2;
@@ -718,7 +714,7 @@ function getAdminKeyCached() {
             const message = err && err.message ? err.message : String(err);
             const retryable = /load failed|failed to fetch|networkerror|timeout/i.test(message);
             if (!retryable || i === maxRetries) break;
-            await sleep_(120 * (i + 1));
+            await new Promise((resolve) => setTimeout(resolve, 120 * (i + 1)));
           }
         }
         throw lastErr || new Error('API通信に失敗しました');
@@ -803,16 +799,6 @@ function getAdminKeyCached() {
         return callWriteApi_(action, reqPayload);
       }
 
-      function apiGetUrl(action, extra = {}) {
-        const u = new URL(API_URL, location.href);
-        u.searchParams.set('action', action);
-        Object.entries(extra).forEach(([k, v]) => {
-          if (v == null || v === '') return;
-          u.searchParams.set(k, String(v));
-        });
-        return u.toString();
-      }
-
       async function loadSessionConfig() {
         try {
           const res = await api('getSessionConfig', { sessionCode: SESSION });
@@ -864,7 +850,10 @@ function getAdminKeyCached() {
           alert('API URL が未設定です');
           return;
         }
-        window.open(apiGetUrl('exportCsv', { session: SESSION }), '_blank');
+        const u = new URL(API_URL, location.href);
+        u.searchParams.set('action', 'exportCsv');
+        u.searchParams.set('session', SESSION);
+        window.open(u.toString(), '_blank');
       }
 
       async function tipSupport() {
@@ -1264,10 +1253,6 @@ function getAdminKeyCached() {
       }
 
       function submitReply(questionId) {
-        openReplyModal(questionId);
-      }
-
-      function submitReplyQuick(questionId) {
         openReplyModal(questionId);
       }
 
@@ -2455,7 +2440,7 @@ function getAdminKeyCached() {
               lastErr = err;
             }
           }
-          if (attempt < retries) await sleep_(220 * (attempt + 1));
+          if (attempt < retries) await new Promise((resolve) => setTimeout(resolve, 220 * (attempt + 1)));
         }
         throw lastErr || new Error('listQuestions の取得に失敗しました');
       }
