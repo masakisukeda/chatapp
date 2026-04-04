@@ -11,20 +11,26 @@
           border-radius: 0;
           background: none;
         }
-        /* ライブ投票・アンケートの見出し（質問文）を目立たせる */
+        /* ライブ投票・アンケートの見出し（質問文）余白 */
         .poll-q {
-          font-size: 32px !important;
           margin-bottom: 20px;
         }
-        /* タイポグラフィスケール: PC用に階層を引き直す */
+        /* タイポグラフィスケール: PCは4サイズに統一 */
         :root {
-          --font-xl: 22px;
+          --font-xs: 14px;
+          --font-sm: 16px;
+          --font-md: 16px;
+          --font-lg: 20px;
+          --font-xl: 20px;
           --font-2xl: 28px;
-          --font-3xl: 36px;
+          --font-3xl: 28px;
+          --pc-font-meta: 14px;
+          --pc-font-body: 16px;
+          --pc-font-title: 20px;
+          --pc-font-headline: 28px;
         }
         /* リアルタイム表示: リクエスト投稿タイトルをpoll-qと同サイズに */
         .presenter .q-title {
-          font-size: 32px;
           line-height: 1.5;
         }
         /* リアルタイム表示: カード間の余白・行間 */
@@ -94,20 +100,20 @@
         }
         .audience-flat-list .feed-kind {
           flex: 0 0 auto;
-          font-size: var(--font-xs);
+          font-size: var(--pc-font-body);
           font-weight: 700;
           color: var(--muted);
         }
         .audience-flat-list .feed-text {
           min-width: 0;
-          font-size: var(--font-sm);
+          font-size: var(--pc-font-body);
           line-height: 1.45;
           white-space: normal;
           word-break: break-word;
         }
         .audience-flat-list .feed-meta-line,
         .audience-flat-list .feed-parent-line {
-          font-size: var(--font-xs);
+          font-size: var(--pc-font-meta);
           line-height: 1.4;
           color: var(--muted);
         }
@@ -126,7 +132,7 @@
         .audience-flat-list .feed-action-btn {
           min-height: 28px;
           padding: 5px 10px;
-          font-size: var(--font-xs);
+          font-size: var(--pc-font-body);
         }
         .audience-flat-list .feed-row-question .feed-kind {
           color: #4f6410;
@@ -145,28 +151,12 @@
         .vote-row-meta,
         .vote-meta-sub,
         .muted-note {
-          font-size: 14px;
+          font-size: var(--pc-font-meta);
           font-weight: 500;
           line-height: 1.55;
         }
-        .q-title,
         .reply-text,
         .audience-flat-list .feed-text,
-        .poll-opt-label,
-        .poll-input-label,
-        .poll-result-label,
-        .poll-result-value,
-        .vote-label {
-          font-size: 18px;
-          font-weight: 600;
-          line-height: 1.5;
-        }
-        .poll-q,
-        .presenter .q-title {
-          font-size: 28px !important;
-          font-weight: 700;
-          line-height: 1.45;
-        }
         .view-tab,
         .admin-summary,
         .badge,
@@ -177,11 +167,28 @@
         .poll-input-controls .poll-meta,
         .vote,
         .like-count-btn {
-          font-size: 14px;
+          font-size: var(--pc-font-body);
           font-weight: 600;
         }
+        .hero h1,
+        .q-title,
+        .poll-opt-label,
+        .poll-input-label,
+        .poll-result-label,
+        .poll-result-value,
+        .vote-label {
+          font-size: var(--pc-font-title);
+          font-weight: 700;
+          line-height: 1.5;
+        }
+        .poll-q,
+        .presenter .q-title {
+          font-size: var(--pc-font-headline) !important;
+          font-weight: 700;
+          line-height: 1.45;
+        }
         .poll-heart-count {
-          font-size: 13px;
+          font-size: var(--pc-font-meta);
           font-weight: 600;
         }
       }
