@@ -946,7 +946,7 @@ function getAdminKeyCached() {
         }
         let html = '';
         if (VIEW === 'audience') {
-          html = '<button class="ghost" onclick="clearQuestionsData()">投稿リセット</button>';
+          html = '';
         } else if (VIEW === 'screen') {
           html = `
             <button class="ghost" onclick="toggleUnreadOnly()">${unreadOnly ? '全件表示' : '未読のみ表示'}</button>
