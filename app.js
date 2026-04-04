@@ -90,6 +90,7 @@ const ADMIN_ACTIONS = new Set([
       let voteDraftSaveTimer = null;
       let voteCountdownTimer = null;
       let voteCountdownRemainingSec = -1;
+      let replyModalQuestionId = '';
 
       const voterTokenKey = () => `voterToken:${SESSION}`;
       let voterToken = '';
@@ -1155,20 +1156,19 @@ function getAdminKeyCached() {
         }
       }
 
-      async function submitReply(questionId) {
-        const input = document.getElementById(`reply-input-${questionId}`);
-        if (!input) return;
-        const replyText = (input.value || '').trim();
-        if (!replyText) return;
-        const displayName = getDisplayName();
+      async function submitReplyByText(questionId, replyText, displayName) {
+        const text = String(replyText || '').trim();
+        if (!text) return;
+        const name = normalizeDisplayName(displayName || getDisplayName());
+        setDisplayName(name);
         const tempId = `temp-r-${Date.now()}`;
 
         const before = currentQuestions.slice();
         const optimisticReply = {
           id: tempId,
           createdAt: new Date().toISOString(),
-          displayName,
-          replyText,
+          displayName: name,
+          replyText: text,
           votes: 0,
           isMine: true,
         };
@@ -1180,14 +1180,13 @@ function getAdminKeyCached() {
           return { ...q, replies };
         });
         renderList(currentQuestions);
-        input.value = '';
 
         try {
           const res = await api('submitReply', {
             questionId,
             sessionCode: SESSION,
-            displayName,
-            replyText,
+            displayName: name,
+            replyText: text,
             authorToken,
           });
           currentQuestions = currentQuestions.map((q) => {
@@ -1210,61 +1209,64 @@ function getAdminKeyCached() {
         }
       }
 
-      async function submitReplyQuick(questionId) {
-        const raw = window.prompt('コメントを入力してください');
-        if (raw == null) return;
-        const replyText = String(raw || '').trim();
+      function openReplyModal(questionId) {
+        if (!questionId) return;
+        const modal = document.getElementById('replyModal');
+        if (!modal) return;
+        replyModalQuestionId = String(questionId);
+        const hidden = document.getElementById('modalReplyQuestionId');
+        if (hidden) hidden.value = replyModalQuestionId;
+        const nameInput = document.getElementById('replyModalName');
+        if (nameInput) nameInput.value = getDisplayName();
+        const textArea = document.getElementById('modalReplyText');
+        if (textArea) textArea.value = '';
+        const target = currentQuestions.find((q) => String(q.id) === replyModalQuestionId);
+        const targetEl = document.getElementById('replyModalTarget');
+        if (targetEl) {
+          const source = String(target?.questionText || '').replace(/\s+/g, ' ').trim();
+          targetEl.textContent = source ? `返信先: ${source.length > 60 ? `${source.slice(0, 60)}…` : source}` : '';
+        }
+        modal.classList.add('open');
+        if (textArea) {
+          setTimeout(() => textArea.focus(), 0);
+        }
+      }
+
+      function closeReplyModal() {
+        const modal = document.getElementById('replyModal');
+        if (modal) modal.classList.remove('open');
+        replyModalQuestionId = '';
+        const hidden = document.getElementById('modalReplyQuestionId');
+        if (hidden) hidden.value = '';
+      }
+
+      function onReplyModalBackdrop(event) {
+        if (event.target && event.target.id === 'replyModal') closeReplyModal();
+      }
+
+      async function submitReplyModal() {
+        const questionId = String(
+          replyModalQuestionId
+          || document.getElementById('modalReplyQuestionId')?.value
+          || ''
+        ).trim();
+        if (!questionId) return;
+        const displayName = normalizeDisplayName(document.getElementById('replyModalName')?.value || getDisplayName());
+        const replyText = String(document.getElementById('modalReplyText')?.value || '').trim();
         if (!replyText) {
           alert('コメントを入力してください');
           return;
         }
-        const displayName = getDisplayName();
-        const tempId = `temp-r-${Date.now()}`;
+        closeReplyModal();
+        await submitReplyByText(questionId, replyText, displayName);
+      }
 
-        const before = currentQuestions.slice();
-        const optimisticReply = {
-          id: tempId,
-          createdAt: new Date().toISOString(),
-          displayName,
-          replyText,
-          votes: 0,
-          isMine: true,
-        };
-        pendingReplies.set(tempId, { ...optimisticReply, questionId });
-        currentQuestions = currentQuestions.map((q) => {
-          if (q.id !== questionId) return q;
-          const replies = Array.isArray(q.replies) ? q.replies.slice() : [];
-          replies.push(optimisticReply);
-          return { ...q, replies };
-        });
-        renderList(currentQuestions);
+      function submitReply(questionId) {
+        openReplyModal(questionId);
+      }
 
-        try {
-          const res = await api('submitReply', {
-            questionId,
-            sessionCode: SESSION,
-            displayName,
-            replyText,
-            authorToken,
-          });
-          currentQuestions = currentQuestions.map((q) => {
-            if (q.id !== questionId) return q;
-            const replies = (q.replies || []).map((r) => (r.id === tempId ? { ...r, id: res.id } : r));
-            return { ...q, replies };
-          });
-          const p = pendingReplies.get(tempId);
-          if (p) {
-            pendingReplies.delete(tempId);
-            pendingReplies.set(res.id, { ...p, id: res.id });
-          }
-          renderList(currentQuestions);
-          triggerFastSync();
-        } catch (e) {
-          pendingReplies.delete(tempId);
-          currentQuestions = before;
-          renderList(currentQuestions);
-          alert(e.message || '返信失敗');
-        }
+      function submitReplyQuick(questionId) {
+        openReplyModal(questionId);
       }
 
       async function loadPoll() {
@@ -1975,9 +1977,9 @@ function getAdminKeyCached() {
           panel.innerHTML = `
             ${startGuideHtml}
             <div id="questionModal" class="modal" onclick="onModalBackdrop(event)">
-              <div class="modal-card">
-                <div class="modal-head">
-                  <h3>質問を投稿🐮</h3>
+            <div class="modal-card">
+              <div class="modal-head">
+                <h3>質問を投稿🐮</h3>
                   <button class="ghost modal-close" onclick="closeQuestionModal()">×</button>
                 </div>
                 <div class="field">
@@ -1990,6 +1992,27 @@ function getAdminKeyCached() {
                 </div>
                 <div class="actions">
                   <button class="primary" onclick="submitQ()">送信🐮</button>
+                </div>
+              </div>
+            </div>
+            <div id="replyModal" class="modal" onclick="onReplyModalBackdrop(event)">
+              <div class="modal-card">
+                <div class="modal-head">
+                  <h3>コメントを返信</h3>
+                  <button class="ghost modal-close" onclick="closeReplyModal()">×</button>
+                </div>
+                <input id="modalReplyQuestionId" type="hidden">
+                <p class="reply-modal-target" id="replyModalTarget"></p>
+                <div class="field">
+                  <label>名前</label>
+                  <input id="replyModalName" maxlength="40" placeholder="例）すけだ" value="${esc(getDisplayName())}">
+                </div>
+                <div class="field">
+                  <label>コメント</label>
+                  <textarea id="modalReplyText" placeholder="返信コメントを入力してください"></textarea>
+                </div>
+                <div class="actions">
+                  <button class="primary" onclick="submitReplyModal()">返信する</button>
                 </div>
               </div>
             </div>
@@ -2037,7 +2060,6 @@ function getAdminKeyCached() {
               <div class="q-meta">${pinChip}${statusChip}${esc(q.displayName)} ・ ${new Date(q.createdAt).toLocaleString()}${deleteMeta}</div>
               <div class="replies">${repliesHtml}</div>
               <div class="reply-form reply-form-audience">
-                <input id="reply-input-${esc(q.id)}" placeholder="コメントに返信">
                 <div class="reply-form-actions">
                   <button class="ghost" onclick="submitReply('${esc(q.id)}')">返信</button>
                   <button class="ghost like-count-btn vote-action-btn q-like-mobile" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes}</button>

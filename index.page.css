@@ -377,6 +377,15 @@
       #questionModal .actions .primary {
         order: 2;
       }
+      .reply-modal-target {
+        margin: 0 0 10px;
+        font-size: var(--font-xs);
+        color: var(--muted);
+        line-height: 1.45;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
 
       .q-side-audience {
         justify-content: flex-end;
@@ -446,36 +455,117 @@
         .q-item-audience .q-side-audience {
           display: none;
         }
+        .q-item-audience {
+          grid-template-columns: 1fr;
+          gap: 14px;
+          padding: 16px 14px;
+          border-radius: 22px;
+          box-shadow: none;
+        }
+        .q-item-audience .q-title {
+          font-size: clamp(21px, 6vw, 26px);
+          line-height: 1.35;
+        }
+        .q-item-audience .q-meta {
+          margin-top: 8px;
+          font-size: 12px;
+          line-height: 1.45;
+        }
+        .q-item-audience .replies {
+          margin-top: 14px;
+          gap: 12px;
+        }
+        body[data-theme="dark"] .q-item-audience {
+          background: #767679;
+          border-color: rgba(247, 249, 252, 0.42);
+        }
+        body[data-theme="dark"] .q-item-audience .q-title,
+        body[data-theme="dark"] .q-item-audience .q-meta,
+        body[data-theme="dark"] .q-item-audience .reply-text,
+        body[data-theme="dark"] .q-item-audience .reply-meta {
+          color: #f4f7f9;
+        }
         .q-item-audience .reply-item {
           position: relative;
           display: block;
-          padding: 8px 10px;
+          padding: 12px 86px 12px 12px;
+          border-radius: 20px;
+          box-shadow: none;
+        }
+        body[data-theme="dark"] .q-item-audience .reply-item {
+          background: rgba(116, 116, 119, 0.48);
+          border-color: rgba(247, 249, 252, 0.38);
         }
         .q-item-audience .reply-item .reply-text,
         .q-item-audience .reply-item .reply-meta {
-          padding-right: 64px;
+          padding-right: 0;
+        }
+        .q-item-audience .reply-item .reply-text {
+          font-size: 18px;
+          line-height: 1.45;
+        }
+        .q-item-audience .reply-item .reply-meta {
+          margin-top: 6px;
+          font-size: 11px;
         }
         .q-item-audience .reply-item .reply-actions.reply-actions-audience {
           position: absolute;
-          top: 8px;
-          right: 10px;
+          top: 50%;
+          right: 12px;
+          transform: translateY(-50%);
           width: auto;
           margin-top: 0;
-          align-items: flex-start;
+          align-items: center;
           justify-content: flex-end;
         }
+        .q-item-audience .reply-item .reply-actions.reply-actions-audience .like-count-btn {
+          min-width: 74px;
+          min-height: 40px;
+          border-radius: 999px;
+          padding: 7px 12px;
+        }
+        body[data-theme="dark"] .q-item-audience .reply-item .reply-actions.reply-actions-audience .like-count-btn {
+          border-color: rgba(247, 249, 252, 0.4);
+          background: rgba(116, 116, 119, 0.5);
+          color: #f4f7f9;
+        }
         .reply-form-audience {
-          grid-template-columns: 1fr auto;
-          align-items: center;
+          display: flex;
+          justify-content: flex-end;
+          margin-top: 10px;
         }
         .reply-form-audience .reply-form-actions {
           justify-content: flex-end;
+          border: 1px solid var(--line);
+          border-radius: 999px;
+          overflow: hidden;
+          gap: 0;
+        }
+        body[data-theme="dark"] .reply-form-audience .reply-form-actions {
+          border-color: rgba(247, 249, 252, 0.36);
+          background: rgba(116, 116, 119, 0.36);
         }
         .reply-form-audience .q-like-mobile {
           display: inline-flex;
+          order: 1;
         }
         .reply-form-audience .reply-form-actions > button {
           min-height: var(--control-h);
+          border: 0;
+          border-radius: 0;
+          padding-left: 12px;
+          padding-right: 12px;
+        }
+        body[data-theme="dark"] .reply-form-audience .reply-form-actions > button {
+          color: #f4f7f9;
+          background: transparent;
+        }
+        .reply-form-audience .reply-form-actions > button:not(.q-like-mobile) {
+          order: 2;
+          border-left: 1px solid var(--line);
+        }
+        body[data-theme="dark"] .reply-form-audience .reply-form-actions > button:not(.q-like-mobile) {
+          border-left-color: rgba(247, 249, 252, 0.32);
         }
         .reply-actions-audience .like-count-btn {
           margin-left: 0;
