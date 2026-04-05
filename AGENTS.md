@@ -25,6 +25,12 @@ cd /Users/masakisukeda/Library/CloudStorage/GoogleDrive-masaki.sukeda@gmail.com/
 ```
 
 ## 3. 作業ルール
+- 実装時は、以下の手順を必須フローとして実施する。
+  1. `https://drsp.cc/app/AGENTS.md` を読む
+  2. この `AGENTS.md` を読む
+  3. `DESIGN_chat.md` を読む
+  4. 指示された実装を最小差分で行う
+  5. 本番環境までいっきに進め、確認待ちで止めず HTTP `200` 確認まで自己完結で実施する
 - 変更は最小差分。
 - UI/コンポーネント修正時は `DESIGN_chat.md` を必ず参照し、同ガイドのルールで一貫性を保つ。
 - 既存UIのトーン・文言・導線を維持する。
