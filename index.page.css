@@ -1355,6 +1355,10 @@
 
       /* ===== Poll PC layout close to reference (dark) ===== */
       @media (min-width: 701px) {
+        body[data-theme="dark"] .container {
+          max-width: 980px;
+        }
+
         body[data-theme="dark"] .hero {
           margin: 6px 0 14px;
         }
@@ -1381,14 +1385,7 @@
           box-shadow: none;
         }
         body[data-theme="dark"] .poll-notice-card .poll-q {
-          display: block;
-          padding: 0;
-          border: 0;
-          background: none;
           font-size: 24px;
-        }
-        body[data-theme="dark"] .poll-notice-card .poll-q::before {
-          content: none;
         }
         body[data-theme="dark"] .poll-notice-card .note a {
           color: #86b9ff;
@@ -1413,15 +1410,6 @@
           width: 9px;
           height: 9px;
           background: var(--brand);
-        }
-        body[data-theme="dark"] .poll-result-col > .poll-box > .poll-q {
-          display: block;
-          padding: 0;
-          border: 0;
-          background: none;
-        }
-        body[data-theme="dark"] .poll-result-col > .poll-box > .poll-q::before {
-          content: none;
         }
         body[data-theme="dark"] .poll-result-summary {
           font-size: 13px;
@@ -1484,7 +1472,6 @@
         body[data-theme="dark"] .poll-result-track {
           height: 8px;
           border-color: rgba(91, 101, 119, 0.38);
-          border-right: 0;
           background: rgba(125, 136, 153, 0.18);
         }
         body[data-theme="dark"] .poll-result-fill {
