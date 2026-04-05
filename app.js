@@ -1413,6 +1413,11 @@ function getAdminKeyCached() {
           });
         const totalHearts = metrics.reduce((sum, m) => sum + Number(m.totalHearts || 0), 0);
         const maxHearts = metricsForResult.reduce((max, m) => Math.max(max, Number(m.totalHearts || 0)), 0);
+        const ratioText = (count) => {
+          if (totalHearts <= 0) return '0%';
+          const ratio = (Number(count || 0) / totalHearts) * 100;
+          return `${ratio % 1 === 0 ? ratio.toFixed(0) : ratio.toFixed(1)}%`;
+        };
         const resultRows = metricsForResult.map((m) => {
           const count = Math.max(0, Number(m.totalHearts || 0));
           const width = maxHearts > 0 ? Math.round((count / maxHearts) * 1000) / 10 : 0;
@@ -1422,6 +1427,7 @@ function getAdminKeyCached() {
                       <div class="poll-result-label">${esc(m.label)}</div>
                       <div class="poll-result-value">
                         <span class="poll-heart-count">${count}票</span>
+                        <span class="poll-result-ratio">${ratioText(count)}</span>
                       </div>
                     </div>
                     <div class="poll-result-track" aria-hidden="true">
