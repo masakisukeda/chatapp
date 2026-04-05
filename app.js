@@ -1352,6 +1352,13 @@ function getAdminKeyCached() {
         }
       }
 
+      function heartsCompact(count) {
+        const c = Math.max(0, Number(count || 0));
+        const visualCap = isMobileLayout() ? 5 : 10;
+        const shown = Math.min(visualCap, c);
+        return shown > 0 ? `<span class="heart-mark">${'♥︎'.repeat(shown)}</span>` : '0';
+      }
+
       function getBoardMetrics(board) {
         if (Array.isArray(board.metrics) && board.metrics.length) {
           return board.metrics.map((m, idx) => ({
@@ -1411,31 +1418,12 @@ function getAdminKeyCached() {
             if (diff !== 0) return diff;
             return a._idx - b._idx;
           });
-        const totalHearts = metrics.reduce((sum, m) => sum + Number(m.totalHearts || 0), 0);
-        const maxHearts = metricsForResult.reduce((max, m) => Math.max(max, Number(m.totalHearts || 0)), 0);
-        const ratioText = (count) => {
-          if (totalHearts <= 0) return '0%';
-          const ratio = (Number(count || 0) / totalHearts) * 100;
-          return `${ratio % 1 === 0 ? ratio.toFixed(0) : ratio.toFixed(1)}%`;
-        };
-        const resultRows = metricsForResult.map((m) => {
-          const count = Math.max(0, Number(m.totalHearts || 0));
-          const width = maxHearts > 0 ? Math.round((count / maxHearts) * 1000) / 10 : 0;
-          return `
+        const resultRows = metricsForResult.map((m) => `
                   <div class="poll-result-item">
-                    <div class="poll-result-head">
-                      <div class="poll-result-label">${esc(m.label)}</div>
-                      <div class="poll-result-value">
-                        <span class="poll-heart-count">${count}票</span>
-                        <span class="poll-result-ratio">${ratioText(count)}</span>
-                      </div>
-                    </div>
-                    <div class="poll-result-track" aria-hidden="true">
-                      <div class="poll-result-fill" style="width:${width}%"></div>
-                    </div>
+                    <div class="poll-result-label">${esc(m.label)}</div>
+                    <div class="poll-result-value">${heartsCompact(m.totalHearts)}<span class="poll-heart-count">${Number(m.totalHearts || 0)}票</span></div>
                   </div>
-          `;
-        }).join('');
+        `).join('');
         const inputRows = metrics.map((m) => {
           const myHearts = Number(m.myHearts || 0);
           const atLimit = myHearts >= heartLimit;
@@ -1450,6 +1438,7 @@ function getAdminKeyCached() {
                   </div>
                 </div>`;
         }).join('');
+        const totalHearts = metrics.reduce((sum, m) => sum + Number(m.totalHearts || 0), 0);
         return {
           totalHearts,
           resultRows,
@@ -1528,10 +1517,10 @@ function getAdminKeyCached() {
               <div class="card poll-box">
                 <p class="poll-q">結果</p>
                 <div class="poll-list">
-                  <div class="poll-meta poll-result-summary poll-result-summary-total">投票数：合計 ${metricsView.totalHearts}票</div>
+                  <div class="poll-meta poll-result-summary" style="margin-bottom:10px; font-weight:700;">投票数：合計 ${metricsView.totalHearts}票</div>
                   ${metricsView.resultRows}
                 </div>
-                <div class="poll-meta poll-result-summary poll-result-summary-topic">次回テーマ：合計 ${metricsView.topicTotal}票</div>
+                <div class="poll-meta poll-result-summary" style="margin-top:14px; margin-bottom:10px; font-weight:700;">次回テーマ：合計 ${metricsView.topicTotal}票</div>
                 <div class="poll-list poll-topic-list">
                   ${topicRows || '<div class="muted-note">まだ投稿がありません。</div>'}
                 </div>
