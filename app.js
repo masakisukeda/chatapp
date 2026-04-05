@@ -2060,22 +2060,36 @@ function getAdminKeyCached() {
           : '';
         const pinChip = q.pinned ? '<span class="status-chip">📍</span>' : '';
         const canForceDelete = !isMobile && !!getAdminKeyCached();
+        const canEditQuestion = canForceDelete;
         const canDeleteQuestion = canForceDelete || !!q.isMine;
+        const questionEditMeta = canEditQuestion
+          ? ` <button class="meta-edit-link" type="button" onclick="editQuestionAsAdmin('${esc(q.id)}')">編集</button>`
+          : '';
         const deleteMeta = canDeleteQuestion
-          ? ` ・ <button class="meta-delete-link" type="button" onclick="deleteMyQuestion('${esc(q.id)}')">削除</button>`
+          ? ` <button class="meta-delete-link" type="button" onclick="deleteMyQuestion('${esc(q.id)}')">削除</button>`
+          : '';
+        const questionMetaActions = (questionEditMeta || deleteMeta)
+          ? `<span class="meta-actions">${questionEditMeta}${deleteMeta}</span>`
           : '';
         const questionSwipeClass = canDeleteQuestion ? ' swipe-ready' : '';
         const replies = Array.isArray(q.replies) ? q.replies : [];
         const repliesHtml = replies.map((r) => {
+          const canEditReply = canForceDelete;
           const canDeleteReply = canForceDelete || !!r.isMine;
+          const replyEditMeta = canEditReply
+            ? ` <button class="meta-edit-link" type="button" onclick="editReplyAsAdmin('${esc(q.id)}','${esc(r.id)}')">編集</button>`
+            : '';
           const replyDeleteMeta = canDeleteReply
-            ? ` ・ <button class="meta-delete-link" type="button" onclick="deleteMyReply('${esc(q.id)}','${esc(r.id)}')">削除</button>`
+            ? ` <button class="meta-delete-link" type="button" onclick="deleteMyReply('${esc(q.id)}','${esc(r.id)}')">削除</button>`
+            : '';
+          const replyMetaActions = (replyEditMeta || replyDeleteMeta)
+            ? `<span class="meta-actions">${replyEditMeta}${replyDeleteMeta}</span>`
             : '';
           const replySwipeClass = canDeleteReply ? ' swipe-ready' : '';
           return `
           <div class="reply-item${replySwipeClass}" data-rid="${esc(r.id)}" data-qid="${esc(q.id)}">
             <p class="reply-text">${linkifyText(r.replyText)}</p>
-            <div class="reply-meta">${esc(r.displayName)} ・ ${new Date(r.createdAt).toLocaleString()}${replyDeleteMeta}</div>
+            <div class="reply-meta reply-meta-audience"><span class="reply-meta-main">${esc(r.displayName)} ・ ${new Date(r.createdAt).toLocaleString()}</span>${replyMetaActions}</div>
             <div class="reply-actions reply-actions-audience">
               <button class="ghost like-count-btn vote-action-btn mobile-post-btn" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${r.votes || 0}</button>
             </div>
@@ -2087,8 +2101,8 @@ function getAdminKeyCached() {
           <article class="card q-item q-item-audience${audienceLayoutClass}${questionSwipeClass}" data-qid="${esc(q.id)}">
             <div class="q-main">
               <p class="q-title">${linkifyText(q.questionText)}</p>
-              <div class="q-meta">${pinChip}${statusChip}${esc(q.displayName)} ・ ${new Date(q.createdAt).toLocaleString()}${deleteMeta}</div>
-              <div class="replies">${repliesHtml}</div>
+              <div class="q-meta q-meta-audience">${pinChip}${statusChip}<span class="q-meta-main">${esc(q.displayName)} ・ ${new Date(q.createdAt).toLocaleString()}</span>${questionMetaActions}</div>
+              ${replies.length ? `<div class="replies">${repliesHtml}</div>` : ''}
               <div class="reply-form reply-form-audience">
                 <div class="reply-form-actions mobile-post-btn-group">
                   <button class="ghost mobile-post-btn" onclick="submitReply('${esc(q.id)}')">返信</button>
@@ -2271,8 +2285,6 @@ function getAdminKeyCached() {
 
         if (VIEW === 'screen') {
           root.innerHTML = questions.map(renderScreenItem).join('');
-        } else if (VIEW === 'audience' && !isMobileLayout()) {
-          root.innerHTML = `<div class="audience-flat-list">${renderAudienceDesktopRows(questions)}</div>`;
         } else {
           root.innerHTML = questions.map(renderAudienceItem).join('');
         }

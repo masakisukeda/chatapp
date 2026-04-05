@@ -662,3 +662,89 @@
           margin-left: auto;
         }
       }
+
+      /* ===== Audience readability redesign (DESIGN_chat aligned) ===== */
+      .q-meta-audience,
+      .reply-meta-audience {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .q-meta-main,
+      .reply-meta-main {
+        min-width: 0;
+      }
+      .meta-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: auto;
+      }
+      .meta-edit-link {
+        background: transparent;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-pill);
+        padding: 2px 8px;
+        color: var(--muted);
+        font-size: var(--font-xs);
+        line-height: 1.35;
+      }
+      .meta-edit-link:hover {
+        border-color: rgba(149, 183, 11, 0.45);
+        color: var(--text);
+      }
+
+      @media (min-width: 701px) {
+        .q-item-audience {
+          max-width: 960px;
+          margin: 0 auto;
+        }
+        .q-item-audience.q-item-audience-desktop {
+          grid-template-columns: minmax(0, 1fr) auto;
+          align-items: start;
+          gap: 12px;
+          padding: 18px 20px;
+        }
+        .q-item-audience .q-main {
+          display: grid;
+          gap: 8px;
+        }
+        .q-item-audience .q-title {
+          line-height: 1.58;
+        }
+        .q-item-audience .q-meta-audience {
+          margin-top: 0;
+        }
+        .q-item-audience .replies {
+          margin-top: 2px;
+          gap: 8px;
+        }
+        .q-item-audience .reply-item {
+          padding: 10px 12px;
+          border-radius: var(--radius-sm);
+        }
+        .q-item-audience .reply-item .reply-actions.reply-actions-audience {
+          align-items: center;
+        }
+        .q-item-audience .reply-form-audience {
+          margin-top: 10px;
+          justify-content: flex-end;
+        }
+        .q-item-audience .q-side-audience .like-count-btn {
+          min-width: 64px;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .q-meta-audience,
+        .reply-meta-audience {
+          gap: 4px;
+        }
+        .q-meta-audience .meta-actions,
+        .reply-meta-audience .meta-actions {
+          width: 100%;
+          margin-left: 0;
+          justify-content: flex-end;
+        }
+      }
