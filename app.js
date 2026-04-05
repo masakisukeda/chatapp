@@ -19,6 +19,7 @@
       const FORCED_LAYOUT = (layoutParam === 'mobile')
         ? 'mobile'
         : ((layoutParam === 'pc' || layoutParam === 'desktop') ? 'desktop' : '');
+      const DEBUG_CSS_PANEL_ENABLED = params.get('debug') === '1';
       const operatorMode = true;
       let sessionConfig = { anonymousOnly: true, tipUrl: '', surveyUrl: String(localStorage.getItem(storageKey(SURVEY_URL_PREFIX)) || '').trim(), metricLabels: ['満足度', '理解度'] };
       let metricLabelDraft = ['満足度', '理解度'];
@@ -482,6 +483,267 @@ const ADMIN_ACTIONS = new Set([
         applyTheme(next);
       }
 
+      const DEBUG_CSS_VAR_GROUPS = [
+        {
+          title: 'Typography',
+          vars: [
+            { name: '--font-xs', min: 10, max: 24, step: 1, fallback: 14 },
+            { name: '--font-sm', min: 12, max: 28, step: 1, fallback: 16 },
+            { name: '--font-md', min: 12, max: 30, step: 1, fallback: 16 },
+            { name: '--font-lg', min: 14, max: 34, step: 1, fallback: 20 },
+            { name: '--font-xl', min: 16, max: 38, step: 1, fallback: 20 },
+          ],
+        },
+        {
+          title: 'Spacing',
+          vars: [
+            { name: '--space-1', min: 2, max: 12, step: 1, fallback: 4 },
+            { name: '--space-2', min: 4, max: 20, step: 1, fallback: 8 },
+            { name: '--space-3', min: 8, max: 28, step: 1, fallback: 12 },
+            { name: '--space-4', min: 12, max: 36, step: 1, fallback: 16 },
+            { name: '--space-5', min: 16, max: 44, step: 1, fallback: 20 },
+          ],
+        },
+        {
+          title: 'Shape',
+          vars: [
+            { name: '--radius-md', min: 8, max: 24, step: 1, fallback: 12 },
+            { name: '--radius-lg', min: 10, max: 28, step: 1, fallback: 14 },
+          ],
+        },
+      ];
+      const DEBUG_CSS_VARS = DEBUG_CSS_VAR_GROUPS.flatMap((group) => group.vars);
+      let debugCssPanelEl = null;
+      let debugCssInitialValues = null;
+      let debugCssPosition = null;
+
+      function parsePxValue(raw, fallback) {
+        const n = Number.parseFloat(String(raw || '').replace('px', '').trim());
+        return Number.isFinite(n) ? n : fallback;
+      }
+
+      function clampValue(n, min, max) {
+        return Math.min(max, Math.max(min, n));
+      }
+
+      function readCssVarNumber(varName, fallback) {
+        const computed = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+        return parsePxValue(computed, fallback);
+      }
+
+      function formatPx(n) {
+        const rounded = Math.round(Number(n) * 100) / 100;
+        return Number.isInteger(rounded) ? String(rounded) : String(rounded);
+      }
+
+      function shouldShowDebugCssPanel() {
+        if (!DEBUG_CSS_PANEL_ENABLED) return false;
+        return !!getAdminKeyCached();
+      }
+
+      function getDebugCssCurrentValues() {
+        const values = {};
+        DEBUG_CSS_VARS.forEach((meta) => {
+          values[meta.name] = readCssVarNumber(meta.name, meta.fallback);
+        });
+        return values;
+      }
+
+      function ensureDebugCssInitialValues() {
+        if (debugCssInitialValues) return;
+        debugCssInitialValues = getDebugCssCurrentValues();
+      }
+
+      function buildDebugCssCopyText(values) {
+        const lines = DEBUG_CSS_VARS.map((meta) => `  ${meta.name}: ${formatPx(values[meta.name])}px;`);
+        return `:root {\n${lines.join('\n')}\n}`;
+      }
+
+      function updateDebugCssValueLabel(varName, value) {
+        if (!debugCssPanelEl) return;
+        const valueEl = debugCssPanelEl.querySelector(`[data-debug-css-value="${varName}"]`);
+        if (!valueEl) return;
+        valueEl.textContent = `${formatPx(value)}px`;
+      }
+
+      function setDebugCssVar(varName, value) {
+        const rootStyle = document.documentElement.style;
+        rootStyle.setProperty(varName, `${formatPx(value)}px`);
+        updateDebugCssValueLabel(varName, value);
+      }
+
+      function syncDebugCssInputsWithCurrentValues() {
+        if (!debugCssPanelEl) return;
+        const values = getDebugCssCurrentValues();
+        DEBUG_CSS_VARS.forEach((meta) => {
+          const input = debugCssPanelEl.querySelector(`input[data-debug-css-var="${meta.name}"]`);
+          if (input) input.value = String(values[meta.name]);
+          updateDebugCssValueLabel(meta.name, values[meta.name]);
+        });
+      }
+
+      async function copyDebugCssValues() {
+        const values = getDebugCssCurrentValues();
+        const text = buildDebugCssCopyText(values);
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            alert('CSS変数をコピーしました');
+            return;
+          }
+        } catch (_e) {}
+        window.prompt('以下をコピーしてください', text);
+      }
+
+      function resetDebugCssValues() {
+        ensureDebugCssInitialValues();
+        if (!debugCssInitialValues) return;
+        DEBUG_CSS_VARS.forEach((meta) => {
+          const base = Number(debugCssInitialValues[meta.name]);
+          const safe = Number.isFinite(base) ? base : meta.fallback;
+          setDebugCssVar(meta.name, safe);
+        });
+        syncDebugCssInputsWithCurrentValues();
+      }
+
+      function installDebugCssPanelDrag(panel, handle) {
+        let dragState = null;
+
+        const onMove = (event) => {
+          if (!dragState) return;
+          const dx = event.clientX - dragState.startX;
+          const dy = event.clientY - dragState.startY;
+          const maxLeft = Math.max(8, window.innerWidth - panel.offsetWidth - 8);
+          const maxTop = Math.max(8, window.innerHeight - panel.offsetHeight - 8);
+          const left = clampValue(dragState.left + dx, 8, maxLeft);
+          const top = clampValue(dragState.top + dy, 8, maxTop);
+          panel.style.left = `${Math.round(left)}px`;
+          panel.style.top = `${Math.round(top)}px`;
+          panel.style.right = 'auto';
+          debugCssPosition = { left: Math.round(left), top: Math.round(top) };
+        };
+
+        const onUp = () => {
+          if (!dragState) return;
+          dragState = null;
+          panel.classList.remove('is-dragging');
+          document.removeEventListener('pointermove', onMove);
+          document.removeEventListener('pointerup', onUp);
+        };
+
+        handle.addEventListener('pointerdown', (event) => {
+          if (event.button !== 0) return;
+          const target = event.target instanceof Element ? event.target : null;
+          if (target && target.closest('button,input,label')) return;
+          event.preventDefault();
+          const rect = panel.getBoundingClientRect();
+          panel.style.left = `${Math.round(rect.left)}px`;
+          panel.style.top = `${Math.round(rect.top)}px`;
+          panel.style.right = 'auto';
+          dragState = {
+            startX: event.clientX,
+            startY: event.clientY,
+            left: rect.left,
+            top: rect.top,
+          };
+          panel.classList.add('is-dragging');
+          document.addEventListener('pointermove', onMove);
+          document.addEventListener('pointerup', onUp);
+        });
+      }
+
+      function buildDebugCssPanelHtml() {
+        const values = getDebugCssCurrentValues();
+        const groupHtml = DEBUG_CSS_VAR_GROUPS.map((group) => {
+          const rows = group.vars.map((meta) => {
+            const value = values[meta.name];
+            return `
+              <div class="debug-css-row">
+                <label for="debug-css-${meta.name.slice(2)}">${meta.name}</label>
+                <div class="debug-css-control">
+                  <input id="debug-css-${meta.name.slice(2)}" type="range" min="${meta.min}" max="${meta.max}" step="${meta.step}" value="${value}" data-debug-css-var="${meta.name}">
+                  <span class="debug-css-value" data-debug-css-value="${meta.name}">${formatPx(value)}px</span>
+                </div>
+              </div>
+            `;
+          }).join('');
+          return `
+            <section class="debug-css-group">
+              <h4>${group.title}</h4>
+              ${rows}
+            </section>
+          `;
+        }).join('');
+
+        return `
+          <div class="debug-css-head" data-debug-css-drag-handle="1">
+            <p class="debug-css-title">CSS Debug Panel</p>
+            <span class="debug-css-badge">admin + debug=1</span>
+          </div>
+          <div class="debug-css-body">
+            ${groupHtml}
+          </div>
+          <div class="debug-css-actions">
+            <button type="button" class="ghost" data-debug-css-copy="1">値をコピー</button>
+            <button type="button" class="ghost" data-debug-css-reset="1">リセット</button>
+          </div>
+        `;
+      }
+
+      function createDebugCssPanel() {
+        ensureDebugCssInitialValues();
+        const panel = document.createElement('aside');
+        panel.id = 'debugCssPanel';
+        panel.className = 'card debug-css-panel';
+        panel.innerHTML = buildDebugCssPanelHtml();
+        if (debugCssPosition && Number.isFinite(debugCssPosition.left) && Number.isFinite(debugCssPosition.top)) {
+          panel.style.left = `${debugCssPosition.left}px`;
+          panel.style.top = `${debugCssPosition.top}px`;
+          panel.style.right = 'auto';
+        }
+
+        panel.addEventListener('input', (event) => {
+          const target = event.target instanceof HTMLInputElement ? event.target : null;
+          if (!target || target.type !== 'range') return;
+          const varName = target.getAttribute('data-debug-css-var');
+          if (!varName) return;
+          const meta = DEBUG_CSS_VARS.find((item) => item.name === varName);
+          if (!meta) return;
+          const raw = Number(target.value);
+          const safe = Number.isFinite(raw) ? clampValue(raw, meta.min, meta.max) : meta.fallback;
+          setDebugCssVar(varName, safe);
+        });
+
+        const copyBtn = panel.querySelector('[data-debug-css-copy="1"]');
+        if (copyBtn) copyBtn.addEventListener('click', copyDebugCssValues);
+        const resetBtn = panel.querySelector('[data-debug-css-reset="1"]');
+        if (resetBtn) resetBtn.addEventListener('click', resetDebugCssValues);
+        const handle = panel.querySelector('[data-debug-css-drag-handle="1"]');
+        if (handle) installDebugCssPanelDrag(panel, handle);
+
+        document.body.appendChild(panel);
+        debugCssPanelEl = panel;
+      }
+
+      function removeDebugCssPanel() {
+        if (!debugCssPanelEl) return;
+        debugCssPanelEl.remove();
+        debugCssPanelEl = null;
+      }
+
+      function syncDebugCssPanelVisibility() {
+        if (!DEBUG_CSS_PANEL_ENABLED) return;
+        if (!shouldShowDebugCssPanel()) {
+          removeDebugCssPanel();
+          return;
+        }
+        if (!debugCssPanelEl) {
+          createDebugCssPanel();
+          return;
+        }
+        syncDebugCssInputsWithCurrentValues();
+      }
+
 function getAdminKeyCached() {
         const fromSession = sessionStorage.getItem(ADMIN_KEY_STORAGE) || '';
         if (fromSession) return fromSession;
@@ -506,6 +768,7 @@ function getAdminKeyCached() {
 
       function clearAdminKeyCached() {
         setAdminKeyCached('');
+        syncDebugCssPanelVisibility();
       }
 
       function syncAdminKeyUi() {
@@ -575,9 +838,11 @@ function getAdminKeyCached() {
         try {
           await api('verifyAdminKey', { adminKey: key });
           setAdminKeyCached(key);
+          syncDebugCssPanelVisibility();
           alert("運営者パスワードを保存しました");
         } catch (e) {
           clearAdminKeyCached();
+          syncDebugCssPanelVisibility();
           alert(e.message || "運営者パスワードが正しくありません");
         }
       }
@@ -602,6 +867,7 @@ function getAdminKeyCached() {
           await api('verifyAdminKey', { adminKey: currentKey });
           await api('changeAdminKey', { adminKey: currentKey, newAdminKey: nextKey });
           setAdminKeyCached(nextKey);
+          syncDebugCssPanelVisibility();
           if (currentInput) currentInput.value = nextKey;
           alert('運営者パスワードを変更しました');
         } catch (e) {
@@ -611,12 +877,17 @@ function getAdminKeyCached() {
 
       async function validateCachedAdminKeyOnBoot() {
         const key = getAdminKeyCached();
-        if (!key) return;
+        if (!key) {
+          syncDebugCssPanelVisibility();
+          return;
+        }
         try {
           await api('verifyAdminKey', { adminKey: key });
+          syncDebugCssPanelVisibility();
         } catch (_e) {
           clearAdminKeyCached();
           syncAdminKeyUi();
+          syncDebugCssPanelVisibility();
         }
       }
 
@@ -1997,6 +2268,7 @@ function getAdminKeyCached() {
 
       function renderPanel() {
         const panel = document.getElementById('panel');
+        if (DEBUG_CSS_PANEL_ENABLED) syncDebugCssPanelVisibility();
         renderHeroAction();
         if (VIEW === 'poll') {
           const pollNotice = String(sessionConfig.surveyUrl || '').trim()
