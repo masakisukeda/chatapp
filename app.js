@@ -79,6 +79,7 @@ const ADMIN_ACTIONS = new Set([
       ]);
       const READ_ACTIONS = new Set(['listQuestions', 'getSessionConfig', 'getPoll', 'getLivePoll', 'getVoteDraft']);
       const ADMIN_KEY_STORAGE = 'chatapp-admin-key';
+      const ADMIN_KEY_PERSIST_STORAGE = 'chatapp-admin-key-persist';
       const POLL_AUDIENCE_MS = 5000;
       const POLL_SCREEN_MS = 3000;
       const TURBO_POLL_AUDIENCE_MS = 2000;
@@ -482,11 +483,29 @@ const ADMIN_ACTIONS = new Set([
       }
 
 function getAdminKeyCached() {
-        return sessionStorage.getItem(ADMIN_KEY_STORAGE) || '';
+        const fromSession = sessionStorage.getItem(ADMIN_KEY_STORAGE) || '';
+        if (fromSession) return fromSession;
+        const fromPersist = localStorage.getItem(ADMIN_KEY_PERSIST_STORAGE) || '';
+        if (fromPersist) {
+          sessionStorage.setItem(ADMIN_KEY_STORAGE, fromPersist);
+          return fromPersist;
+        }
+        return '';
+      }
+
+      function setAdminKeyCached(key) {
+        const next = String(key || '').trim();
+        if (!next) {
+          sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+          localStorage.removeItem(ADMIN_KEY_PERSIST_STORAGE);
+          return;
+        }
+        sessionStorage.setItem(ADMIN_KEY_STORAGE, next);
+        localStorage.setItem(ADMIN_KEY_PERSIST_STORAGE, next);
       }
 
       function clearAdminKeyCached() {
-        sessionStorage.removeItem(ADMIN_KEY_STORAGE);
+        setAdminKeyCached('');
       }
 
       function syncAdminKeyUi() {
@@ -555,7 +574,7 @@ function getAdminKeyCached() {
         }
         try {
           await api('verifyAdminKey', { adminKey: key });
-          sessionStorage.setItem(ADMIN_KEY_STORAGE, key);
+          setAdminKeyCached(key);
           alert("運営者パスワードを保存しました");
         } catch (e) {
           clearAdminKeyCached();
@@ -582,7 +601,7 @@ function getAdminKeyCached() {
         try {
           await api('verifyAdminKey', { adminKey: currentKey });
           await api('changeAdminKey', { adminKey: currentKey, newAdminKey: nextKey });
-          sessionStorage.setItem(ADMIN_KEY_STORAGE, nextKey);
+          setAdminKeyCached(nextKey);
           if (currentInput) currentInput.value = nextKey;
           alert('運営者パスワードを変更しました');
         } catch (e) {
@@ -607,7 +626,7 @@ function getAdminKeyCached() {
         if (key) return key;
         key = (window.prompt('運営者パスワードを入力してください', '') || '').trim();
         if (!key) throw new Error('運営者パスワードが未入力です');
-        sessionStorage.setItem(ADMIN_KEY_STORAGE, key);
+        setAdminKeyCached(key);
         return key;
       }
 
