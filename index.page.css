@@ -1126,7 +1126,7 @@
       .poll-topic-item {
         border-radius: var(--m3-card-radius);
         padding: var(--m3-card-pad-y) var(--m3-card-pad-x);
-        background: var(--surface);
+        background: linear-gradient(180deg, var(--surface) 0, var(--surface-2) 100%);
       }
 
       .q-item,
@@ -1427,6 +1427,68 @@
           font-size: 13px;
           color: #9ea8bb;
           letter-spacing: 0.01em;
+        }
+
+        body[data-theme="dark"] .poll-result-col .poll-list {
+          counter-reset: poll-rank;
+          gap: 10px;
+        }
+        body[data-theme="dark"] .poll-result-item {
+          counter-increment: poll-rank;
+          padding: 10px 14px;
+          border-radius: 12px;
+          border-color: rgba(57, 68, 87, 0.56);
+          background: linear-gradient(180deg, rgba(27, 33, 42, 0.94), rgba(21, 27, 36, 0.94));
+          box-shadow: none;
+          gap: 8px;
+        }
+        body[data-theme="dark"] .poll-result-head {
+          gap: 10px;
+        }
+        body[data-theme="dark"] .poll-result-label {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 15px;
+          color: #f2f5fb;
+        }
+        body[data-theme="dark"] .poll-result-label::before {
+          content: counter(poll-rank);
+          width: 22px;
+          height: 22px;
+          border-radius: 50%;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(115, 125, 141, 0.28);
+          color: #c6cfdd;
+          font-size: 12px;
+          font-weight: 800;
+          line-height: 1;
+        }
+        body[data-theme="dark"] .poll-result-item:first-of-type .poll-result-label::before {
+          background: rgba(197, 234, 31, 0.9);
+          color: #1a2105;
+        }
+        body[data-theme="dark"] .poll-result-value {
+          font-size: 13px;
+          gap: 9px;
+        }
+        body[data-theme="dark"] .poll-heart-count {
+          color: #d8dee8;
+          font-weight: 700;
+        }
+        body[data-theme="dark"] .poll-result-ratio {
+          color: #9ea8bb;
+        }
+        body[data-theme="dark"] .poll-result-track {
+          height: 8px;
+          border-color: rgba(91, 101, 119, 0.38);
+          border-right: 0;
+          background: rgba(125, 136, 153, 0.18);
+        }
+        body[data-theme="dark"] .poll-result-fill {
+          background: linear-gradient(90deg, #a4c315, #c5ea1f);
         }
 
         body[data-theme="dark"] .poll-topic-list {
