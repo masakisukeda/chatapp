@@ -960,6 +960,12 @@
         user-select: none;
       }
 
+      .debug-css-head-right {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--space-1);
+      }
+
       .debug-css-title {
         margin: 0;
         font-size: var(--font-sm);
@@ -979,6 +985,15 @@
         color: var(--muted);
         font-size: var(--font-xs);
         line-height: 1;
+      }
+
+      .debug-css-close {
+        min-height: 24px;
+        width: 24px;
+        padding: 0;
+        border-radius: var(--radius-pill);
+        line-height: 1;
+        font-size: var(--font-sm);
       }
 
       .debug-css-body {

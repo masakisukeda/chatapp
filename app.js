@@ -516,6 +516,7 @@ const ADMIN_ACTIONS = new Set([
       let debugCssPanelEl = null;
       let debugCssInitialValues = null;
       let debugCssPosition = null;
+      let debugCssDismissed = false;
 
       function parsePxValue(raw, fallback) {
         const n = Number.parseFloat(String(raw || '').replace('px', '').trim());
@@ -678,7 +679,10 @@ const ADMIN_ACTIONS = new Set([
         return `
           <div class="debug-css-head" data-debug-css-drag-handle="1">
             <p class="debug-css-title">CSS Debug Panel</p>
-            <span class="debug-css-badge">admin + debug=1</span>
+            <div class="debug-css-head-right">
+              <span class="debug-css-badge">admin + debug=1</span>
+              <button type="button" class="ghost debug-css-close" data-debug-css-close="1" aria-label="デバッグパネルを閉じる">×</button>
+            </div>
           </div>
           <div class="debug-css-body">
             ${groupHtml}
@@ -718,6 +722,8 @@ const ADMIN_ACTIONS = new Set([
         if (copyBtn) copyBtn.addEventListener('click', copyDebugCssValues);
         const resetBtn = panel.querySelector('[data-debug-css-reset="1"]');
         if (resetBtn) resetBtn.addEventListener('click', resetDebugCssValues);
+        const closeBtn = panel.querySelector('[data-debug-css-close="1"]');
+        if (closeBtn) closeBtn.addEventListener('click', closeDebugCssPanel);
         const handle = panel.querySelector('[data-debug-css-drag-handle="1"]');
         if (handle) installDebugCssPanelDrag(panel, handle);
 
@@ -731,8 +737,17 @@ const ADMIN_ACTIONS = new Set([
         debugCssPanelEl = null;
       }
 
+      function closeDebugCssPanel() {
+        debugCssDismissed = true;
+        removeDebugCssPanel();
+      }
+
       function syncDebugCssPanelVisibility() {
         if (!DEBUG_CSS_PANEL_ENABLED) return;
+        if (debugCssDismissed) {
+          removeDebugCssPanel();
+          return;
+        }
         if (!shouldShowDebugCssPanel()) {
           removeDebugCssPanel();
           return;
