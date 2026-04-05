@@ -750,3 +750,186 @@
           justify-content: flex-end;
         }
       }
+
+      /* ===== Cross-view component harmonization ===== */
+      @media (min-width: 701px) {
+        :root {
+          --view-card-radius-pc: var(--radius-md);
+          --view-card-pad-y-pc: 12px;
+          --view-card-pad-x-pc: 14px;
+          --view-card-gap-pc: 12px;
+          --view-meta-font-pc: var(--font-xs);
+          --view-heart-minw-pc: 64px;
+          --view-heart-font-pc: var(--font-sm);
+          --view-btn-height-pc: var(--control-h);
+          --view-btn-radius-pc: var(--radius-pill);
+          --view-fab-size-pc: 58px;
+          --view-fab-offset-pc: 18px;
+          --view-nav-offset-pc: 24px;
+          --view-nav-pad-pc: 5px;
+        }
+        .list,
+        .audience-flat-list,
+        .poll-list,
+        .vote-board,
+        .poll-stack,
+        .replies,
+        .replies-view-grid {
+          gap: var(--view-card-gap-pc);
+        }
+        .q-item,
+        .reply-item,
+        .poll-box,
+        .poll-input-row,
+        .vote-row {
+          border-radius: var(--view-card-radius-pc);
+        }
+        .q-item,
+        .reply-item,
+        .poll-input-row,
+        .vote-row,
+        .poll-box {
+          padding: var(--view-card-pad-y-pc) var(--view-card-pad-x-pc);
+        }
+        .poll-result-item,
+        .poll-topic-item {
+          border-radius: var(--view-card-radius-pc);
+          padding: 10px 14px;
+        }
+        .q-meta,
+        .reply-meta,
+        .feed-meta-inline,
+        .feed-parent-inline,
+        .poll-meta,
+        .poll-mine,
+        .vote-row-meta,
+        .vote-meta-sub {
+          font-size: var(--view-meta-font-pc);
+          color: var(--muted);
+          line-height: 1.5;
+        }
+        .q-side,
+        .q-side-audience,
+        .reply-actions,
+        .reply-actions-audience,
+        .feed-actions {
+          justify-content: flex-end;
+          align-items: center;
+        }
+        .like-count-btn.vote-action-btn {
+          min-width: var(--view-heart-minw-pc);
+          min-height: var(--view-btn-height-pc);
+          padding: 7px 12px;
+          border-radius: var(--radius-pill);
+          font-size: var(--view-heart-font-pc);
+          line-height: 1;
+        }
+        button.ghost,
+        button.primary {
+          min-height: var(--view-btn-height-pc);
+          padding: 7px 12px;
+          border-radius: var(--view-btn-radius-pc);
+        }
+        .floating-tab-bar {
+          bottom: var(--view-nav-offset-pc);
+          padding: var(--view-nav-pad-pc);
+        }
+        .ftb-tab {
+          min-height: var(--view-btn-height-pc);
+          padding: 7px 14px;
+          border-radius: var(--view-btn-radius-pc);
+        }
+        .fab {
+          right: var(--view-fab-offset-pc);
+          bottom: var(--view-fab-offset-pc);
+          width: var(--view-fab-size-pc);
+          height: var(--view-fab-size-pc);
+        }
+      }
+
+      @media (max-width: 700px) {
+        :root {
+          --view-card-radius-m: var(--radius-md);
+          --view-card-pad-y-m: 10px;
+          --view-card-pad-x-m: 12px;
+          --view-card-gap-m: 10px;
+          --view-meta-font-m: var(--font-xs);
+          --view-heart-minw-m: 44px;
+          --view-btn-height-m: var(--control-h);
+          --view-btn-radius-m: var(--radius-pill);
+          --view-fab-size-m: 54px;
+          --view-fab-offset-m: 14px;
+          --view-nav-tab-h-m: 40px;
+        }
+        .list,
+        .audience-flat-list,
+        .poll-list,
+        .vote-board,
+        .poll-stack,
+        .replies {
+          gap: var(--view-card-gap-m);
+        }
+        .q-item,
+        .reply-item,
+        .poll-box,
+        .poll-input-row,
+        .vote-row {
+          border-radius: var(--view-card-radius-m);
+        }
+        .q-item,
+        .reply-item,
+        .poll-input-row,
+        .vote-row,
+        .poll-box {
+          padding: var(--view-card-pad-y-m) var(--view-card-pad-x-m);
+        }
+        .poll-result-item,
+        .poll-topic-item {
+          border-radius: var(--view-card-radius-m);
+          padding: 8px 12px;
+        }
+        .q-meta,
+        .reply-meta,
+        .feed-meta-inline,
+        .feed-parent-inline,
+        .poll-meta,
+        .poll-mine,
+        .vote-row-meta,
+        .vote-meta-sub {
+          font-size: var(--view-meta-font-m);
+          color: var(--muted);
+          line-height: 1.45;
+        }
+        .q-side,
+        .q-side-audience,
+        .reply-actions,
+        .reply-actions-audience,
+        .feed-actions {
+          justify-content: flex-end;
+          align-items: center;
+        }
+        .like-count-btn.vote-action-btn {
+          min-width: var(--view-heart-minw-m);
+          min-height: var(--view-btn-height-m);
+          padding: 7px 10px;
+          border-radius: var(--radius-pill);
+          line-height: 1;
+        }
+        button.ghost,
+        button.primary {
+          min-height: var(--view-btn-height-m);
+          padding: 7px 12px;
+          border-radius: var(--view-btn-radius-m);
+        }
+        .view-switch .view-tab {
+          height: var(--view-nav-tab-h-m);
+          min-height: var(--view-nav-tab-h-m);
+          border-radius: var(--view-btn-radius-m);
+        }
+        .fab {
+          right: var(--view-fab-offset-m);
+          bottom: var(--view-fab-offset-m);
+          width: var(--view-fab-size-m);
+          height: var(--view-fab-size-m);
+        }
+      }
