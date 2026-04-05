@@ -26,6 +26,7 @@ cd /Users/masakisukeda/Library/CloudStorage/GoogleDrive-masaki.sukeda@gmail.com/
 
 ## 3. 作業ルール
 - 変更は最小差分。
+- UI/コンポーネント修正時は `DESIGN_chat.md` を必ず参照し、同ガイドのルールで一貫性を保つ。
 - 既存UIのトーン・文言・導線を維持する。
 - モーダルやフォーム挙動は、既存仕様を崩さない（勝手に閉じる条件を増やさない）。
 - `api.php` は副作用が大きいので、修正時は入力/保存/読み出し経路を必ず確認する。
