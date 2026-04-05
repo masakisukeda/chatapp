@@ -87,25 +87,23 @@
         .audience-flat-list {
           display: grid;
           gap: var(--pc-card-gap);
+          width: 100%;
         }
         .audience-flat-list .feed-row {
           display: grid;
           grid-template-columns: minmax(0, 1fr) auto;
           align-items: center;
-          gap: 10px;
-          padding: 10px 12px;
+          gap: 12px;
+          width: 100%;
+          padding: 12px 14px;
           box-shadow: none;
         }
         .audience-flat-list .feed-main {
           min-width: 0;
-          display: grid;
-          gap: 3px;
-        }
-        .audience-flat-list .feed-title-line {
-          min-width: 0;
           display: flex;
-          align-items: flex-start;
-          gap: 8px;
+          align-items: center;
+          gap: 10px;
+          white-space: nowrap;
         }
         .audience-flat-list .feed-kind {
           flex: 0 0 auto;
@@ -114,32 +112,40 @@
           color: var(--muted);
         }
         .audience-flat-list .feed-text {
+          flex: 1 1 auto;
           min-width: 0;
           font-size: var(--pc-font-body);
-          line-height: 1.45;
-          white-space: normal;
-          word-break: break-word;
-        }
-        .audience-flat-list .feed-meta-line,
-        .audience-flat-list .feed-parent-line {
-          font-size: var(--pc-font-meta);
-          line-height: 1.4;
-          color: var(--muted);
-        }
-        .audience-flat-list .feed-parent-line {
+          line-height: 1.35;
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+        }
+        .audience-flat-list .feed-meta-inline,
+        .audience-flat-list .feed-parent-inline {
+          flex: 0 1 auto;
+          min-width: 0;
+          font-size: var(--pc-font-meta);
+          line-height: 1.35;
+          color: var(--muted);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .audience-flat-list .feed-parent-inline {
+          max-width: 24ch;
+        }
+        .audience-flat-list .feed-meta-inline .status-chip {
+          margin-right: 4px;
         }
         .audience-flat-list .feed-actions {
           display: inline-flex;
           align-items: center;
           justify-content: flex-end;
-          flex-wrap: wrap;
+          flex-wrap: nowrap;
           gap: 6px;
         }
         .audience-flat-list .feed-action-btn {
-          min-height: 28px;
+          min-height: 30px;
           padding: 5px 10px;
           font-size: var(--pc-font-body);
         }
@@ -153,8 +159,8 @@
         .hero p,
         .q-meta,
         .reply-meta,
-        .audience-flat-list .feed-meta-line,
-        .audience-flat-list .feed-parent-line,
+        .audience-flat-list .feed-meta-inline,
+        .audience-flat-list .feed-parent-inline,
         .poll-meta,
         .poll-mine,
         .vote-row-meta,
@@ -696,10 +702,6 @@
       }
 
       @media (min-width: 701px) {
-        .q-item-audience {
-          max-width: 960px;
-          margin: 0 auto;
-        }
         .q-item-audience.q-item-audience-desktop {
           grid-template-columns: minmax(0, 1fr) auto;
           align-items: start;

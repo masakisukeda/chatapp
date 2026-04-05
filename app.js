@@ -2154,11 +2154,9 @@ function getAdminKeyCached() {
             html: `
               <article class="card feed-row feed-row-question">
                 <div class="feed-main">
-                  <div class="feed-title-line">
-                    <span class="feed-kind">投稿</span>
-                    <span class="feed-text">${linkifyText(q.questionText)}</span>
-                  </div>
-                  <div class="feed-meta-line">${pinChip}${statusChip}${esc(q.displayName)} ・ ${new Date(q.createdAt).toLocaleString()}</div>
+                  <span class="feed-kind">投稿</span>
+                  <span class="feed-text">${linkifyText(q.questionText)}</span>
+                  <span class="feed-meta-inline">${pinChip}${statusChip}${esc(q.displayName)} ・ ${new Date(q.createdAt).toLocaleString()}</span>
                 </div>
                 <div class="feed-actions">
                   ${questionEditAction}
@@ -2182,12 +2180,10 @@ function getAdminKeyCached() {
               html: `
                 <article class="card feed-row feed-row-reply">
                   <div class="feed-main">
-                    <div class="feed-title-line">
-                      <span class="feed-kind">コメント</span>
-                      <span class="feed-text">${linkifyText(r.replyText)}</span>
-                    </div>
-                    <div class="feed-meta-line">${esc(r.displayName)} ・ ${new Date(r.createdAt).toLocaleString()}</div>
-                    <div class="feed-parent-line">↳ ${esc(summarize(q.questionText))}</div>
+                    <span class="feed-kind">コメント</span>
+                    <span class="feed-text">${linkifyText(r.replyText)}</span>
+                    <span class="feed-meta-inline">${esc(r.displayName)} ・ ${new Date(r.createdAt).toLocaleString()}</span>
+                    <span class="feed-parent-inline" title="${esc(q.questionText)}">↳ ${esc(summarize(q.questionText))}</span>
                   </div>
                   <div class="feed-actions">
                     ${replyEditAction}
@@ -2285,6 +2281,8 @@ function getAdminKeyCached() {
 
         if (VIEW === 'screen') {
           root.innerHTML = questions.map(renderScreenItem).join('');
+        } else if (VIEW === 'audience' && !isMobileLayout()) {
+          root.innerHTML = `<div class="audience-flat-list">${renderAudienceDesktopRows(questions)}</div>`;
         } else {
           root.innerHTML = questions.map(renderAudienceItem).join('');
         }
