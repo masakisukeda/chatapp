@@ -19,46 +19,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: PHP Syntax Check
-        run: php -l api.php
-
-      - name: Install lftp
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y lftp
-
       - name: Deploy via FTP
-        env:
-          FTP_HOST: ${{ secrets.CHAT_FTP_HOST }}
-          FTP_USER: ${{ secrets.CHAT_FTP_USER }}
-          FTP_PASS: ${{ secrets.CHAT_FTP_PASS }}
-          FTP_BASE: ${{ secrets.CHAT_FTP_BASE }}
-        run: |
-          if [ -z "$FTP_HOST" ] || [ -z "$FTP_USER" ] || [ -z "$FTP_PASS" ]; then
-            echo "CHAT_FTP_HOST / CHAT_FTP_USER / CHAT_FTP_PASS が未設定です" >&2
-            exit 1
-          fi
-
-          DEFAULT_FTP_BASE="/public_html/drsp.cc/chat"
-          LEGACY_FTP_BASE="/virtual/sukeda/public_html/chat"
-          LEGACY_FTP_BASE2="/virtual/sukeda/public_html/drsp.cc/chat"
-          RESOLVED_FTP_BASE="${FTP_BASE:-$DEFAULT_FTP_BASE}"
-          if [ "$RESOLVED_FTP_BASE" = "$LEGACY_FTP_BASE" ] || [ "$RESOLVED_FTP_BASE" = "$LEGACY_FTP_BASE2" ]; then
-            echo "CHAT_FTP_BASE が旧/非公開パス($RESOLVED_FTP_BASE)のため、$DEFAULT_FTP_BASE に補正してデプロイします"
-            RESOLVED_FTP_BASE="$DEFAULT_FTP_BASE"
-          fi
-          echo "Deploy target: $RESOLVED_FTP_BASE"
-
-          lftp -u "$FTP_USER","$FTP_PASS" "$FTP_HOST" -e "
-            set ftp:ssl-allow no;
-            set ssl:verify-certificate no;
-            mkdir -p $RESOLVED_FTP_BASE;
-            mirror -R --verbose --only-newer \
-              --exclude-glob .git\\* \
-              --exclude-glob .github\\* \
-              --exclude-glob .DS_Store \
-              --exclude-glob AGENTS.md \
-              --exclude-glob CSS_RULES_V1.md \
-              ./ $RESOLVED_FTP_BASE;
-            bye
-          "
+        uses: SamKirkland/FTP-Deploy-Action@v4
+        with:
+          server: ${{ secrets.CHAT_FTP_HOST }}
+          username: ${{ secrets.CHAT_FTP_USER }}
+          password: ${{ secrets.CHAT_FTP_PASS }}
+          server-dir: /public_html/drsp.cc/chat/
+          local-dir: ./
+          exclude: |
+            **/.git*
+            **/.github*
+            **/.DS_Store
+            **/AGENTS.md
+            **/CSS_RULES_V1.md
+            **/DESIGN_chat.md
