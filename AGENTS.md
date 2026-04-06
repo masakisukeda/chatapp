@@ -9,6 +9,8 @@
 - 通常デプロイは `main` へ push -> GitHub Actions で実施（直接FTPアップロードは禁止）。
 - `/chat` の公開反映先は `/public_html/drsp.cc/chat`（`/virtual/sukeda/public_html/chat` と `/virtual/sukeda/public_html/drsp.cc/chat` は非公開側の旧/別パス）。
 - `deploy.yml` は `SamKirkland/FTP-Deploy-Action@v4.3.6` を使い、`server-dir: /public_html/drsp.cc/chat/` へ反映する（`CHAT_FTP_BASE` は未使用）。
+- `deploy.yml` は `protocol: ftp` と `port: 21` を明示する。
+- `deploy.yml` は `Deploy via FTP` 前に `.ftp-deploy-sync-state.json` を確認し、未存在時のみ初期化する。
 - PHP構文チェックは `ci.yml` で実施し、`deploy.yml` では実施しない。
 
 ## 1. 対象

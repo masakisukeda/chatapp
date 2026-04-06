@@ -19,6 +19,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Ensure FTP Sync State
+        env:
+          FTP_HOST: ${{ secrets.CHAT_FTP_HOST }}
+          FTP_USER: ${{ secrets.CHAT_FTP_USER }}
+          FTP_PASS: ${{ secrets.CHAT_FTP_PASS }}
+        run: |
+          set -euo pipefail
+          STATE_URL="ftp://${FTP_HOST}/public_html/drsp.cc/chat/.ftp-deploy-sync-state.json"
+          TMP_STATE="$(mktemp)"
+          if ! curl --silent --show-error --fail --user "${FTP_USER}:${FTP_PASS}" "$STATE_URL" -o "$TMP_STATE"; then
+            printf '%s\n' '{"description":"DO NOT DELETE THIS FILE. This file is used to keep track of which files have been synced in the most recent deployment. If you delete this file a resync will need to be done (which can take a while) - read more: https://github.com/SamKirkland/FTP-Deploy-Action","version":"1.0.0","generatedTime":0,"data":[]}' > "$TMP_STATE"
+            curl --silent --show-error --fail --user "${FTP_USER}:${FTP_PASS}" --upload-file "$TMP_STATE" "$STATE_URL"
+          fi
+          rm -f "$TMP_STATE"
+
       - name: Deploy via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
@@ -27,6 +42,8 @@ jobs:
           password: ${{ secrets.CHAT_FTP_PASS }}
           server-dir: /public_html/drsp.cc/chat/
           local-dir: ./
+          protocol: ftp
+          port: 21
           exclude: |
             **/.git*
             **/.git*/**
