@@ -934,9 +934,10 @@
           line-height: 1;
         }
         button.ghost,
-        button.primary {
+        button.primary,
+        .vote-action-btn {
           min-height: var(--view-btn-height-m);
-          padding: 7px 12px;
+          padding: 7px 10px;
           border-radius: var(--view-btn-radius-m);
         }
         .view-switch .view-tab {
