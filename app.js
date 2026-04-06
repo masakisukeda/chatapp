@@ -27,6 +27,7 @@
         currentQuestions: [],
         currentPoll: null,
         currentVotePoll: null,
+        isMobile: false,
         votePrevRankMap: new Map(),
         votePrevWidthMap: new Map(),
         voteLoadError: '',
@@ -137,11 +138,14 @@ const ADMIN_ACTIONS = new Set([
       function isMobileLayout() {
         if (FORCED_LAYOUT === 'mobile') return true;
         if (FORCED_LAYOUT === 'desktop') return false;
-        return typeof window !== 'undefined' && window.matchMedia('(max-width: 700px)').matches;
+        const bp = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--bp-mobile'), 10) || 700;
+        return typeof window !== 'undefined' && window.matchMedia(`(max-width: ${bp}px)`).matches;
       }
 
+      appState.isMobile = isMobileLayout();
+
       function liveHeartLimit() {
-        return isMobileLayout() ? 5 : 10;
+        return appState.isMobile ? 5 : 10;
       }
 
       function storageKey(prefix) {
@@ -1222,7 +1226,7 @@ function getAdminKeyCached() {
       function renderHeroAction() {
         const root = document.getElementById('heroAction');
         if (!root) return;
-        if (isMobileLayout()) {
+        if (appState.isMobile) {
           root.innerHTML = '';
           return;
         }
@@ -1322,7 +1326,7 @@ function getAdminKeyCached() {
       async function deleteMyQuestion(id) {
         const before = appState.currentQuestions.slice();
         const req = { questionId: id, authorToken };
-        if (!isMobileLayout()) {
+        if (!appState.isMobile) {
           const adminKey = getAdminKeyCached();
           if (adminKey) req.adminKey = adminKey;
         }
@@ -1372,7 +1376,7 @@ function getAdminKeyCached() {
       async function deleteMyReply(questionId, replyId) {
         const before = appState.currentQuestions.slice();
         const req = { replyId, authorToken };
-        if (!isMobileLayout()) {
+        if (!appState.isMobile) {
           const adminKey = getAdminKeyCached();
           if (adminKey) req.adminKey = adminKey;
         }
@@ -1585,7 +1589,7 @@ function getAdminKeyCached() {
 
       async function submitLiveHeart(kind) {
         const heartLimit = liveHeartLimit();
-        if (isMobileLayout()) {
+        if (appState.isMobile) {
           const metrics = getBoardMetrics(appState.currentPoll || {});
           const target = metrics.find((m) => String(m.kind) === String(kind));
           const mine = Number((target && target.myHearts) || 0);
@@ -1599,7 +1603,7 @@ function getAdminKeyCached() {
             sessionCode: SESSION,
             pollKind: kind,
             voterToken,
-            clientLayout: isMobileLayout() ? 'mobile' : 'desktop',
+            clientLayout: appState.isMobile ? 'mobile' : 'desktop',
           });
           await loadPoll();
           triggerFastSync();
@@ -1624,7 +1628,7 @@ function getAdminKeyCached() {
       }
 
       async function deleteLiveTopic(topicEncoded) {
-        if (isMobileLayout()) return;
+        if (appState.isMobile) return;
         const topicText = decodeURIComponent(String(topicEncoded || ''));
         if (!topicText) return;
         const ok = window.confirm('この次回テーマを削除しますか？');
@@ -1640,7 +1644,7 @@ function getAdminKeyCached() {
 
       function heartsCompact(count) {
         const c = Math.max(0, Number(count || 0));
-        const visualCap = isMobileLayout() ? 5 : 10;
+        const visualCap = appState.isMobile ? 5 : 10;
         const shown = Math.min(visualCap, c);
         return shown > 0 ? `<span class="heart-mark">${'♥︎'.repeat(shown)}</span>` : '0';
       }
@@ -1681,7 +1685,7 @@ function getAdminKeyCached() {
       }
 
       async function saveMetricLabels() {
-        if (isMobileLayout()) return;
+        if (appState.isMobile) return;
         const labels = normalizeMetricLabels(metricLabelDraft);
         try {
           const res = await api('setSessionConfig', { sessionCode: SESSION, metricLabels: labels });
@@ -1781,11 +1785,11 @@ function getAdminKeyCached() {
           topicTotal: 0,
         };
         const metrics = getBoardMetrics(board);
-        const canManageTopics = operatorMode && !isMobileLayout();
+        const canManageTopics = operatorMode && !appState.isMobile;
         const heartLimit = liveHeartLimit();
         const topicRows = renderPollTopics(board, canManageTopics);
         const metricsView = renderPollMetrics(board, metrics, heartLimit);
-        const metricEditor = !isMobileLayout() ? `
+        const metricEditor = !appState.isMobile ? `
                 <p class="poll-q poll-settings-title">設定</p>
                 <label>評価項目設定（1〜5）</label>
                   ${(metricLabelDraft || []).map((label, idx) => `
@@ -1811,12 +1815,11 @@ function getAdminKeyCached() {
                   ${topicRows || '<div class="muted-note">まだ投稿がありません。</div>'}
                 </div>
               </div>
-            </div>`;
+                </div>`;
         const inputBlock = renderPollComposer(metricsView, heartLimit, metricEditor);
-        const isMobilePoll = isMobileLayout();
         return `
           <div class="poll-stack">
-            ${isMobilePoll ? inputBlock + resultBlock : resultBlock + inputBlock}
+            ${resultBlock + inputBlock}
           </div>`;
       }
 
@@ -2175,7 +2178,7 @@ function getAdminKeyCached() {
 
       function renderVotePanelHtml() {
         const poll = appState.currentVotePoll;
-        const canManage = !isMobileLayout();
+        const canManage = !appState.isMobile;
         const activePollId = String((poll && poll.id) || appState.selectedVotePollId || '');
         const voteNavHtml = canManage && Array.isArray(appState.votePollList) && appState.votePollList.length
           ? `<div class="field" style="margin-top:12px;">
@@ -2194,7 +2197,7 @@ function getAdminKeyCached() {
           appState.votePrevRankMap = new Map();
           appState.votePrevWidthMap = new Map();
           const err = appState.voteLoadError ? `<div class="muted-note" style="color:#dc4c64;">${esc(appState.voteLoadError)}</div><div class="actions" style="margin-top:8px;"><button class="ghost" onclick="retryLoadVotePoll()">再取得</button></div>` : '';
-          if (isMobileLayout()) {
+          if (appState.isMobile) {
             return `<div class="card poll-box"><p class="poll-q">投票</p><div class="muted-note">運営が投票を開始すると、ここに選択肢が表示されます。</div>${err}</div>`;
           }
           const editorRows = (appState.voteDraftOptionList || []).map((opt, idx) => `
@@ -2243,7 +2246,7 @@ function getAdminKeyCached() {
 
         const options = Array.isArray(poll.options) ? poll.options : [];
         const counts = Array.isArray(poll.counts) ? poll.counts : [];
-        const isMobileVote = isMobileLayout();
+        const isMobileVote = appState.isMobile;
         const baseModels = options.map((label, idx) => ({ idx, label, count: Number(counts[idx] || 0) }));
         const rowModels = isMobileVote
           ? baseModels
@@ -2360,7 +2363,7 @@ function getAdminKeyCached() {
       }
 
       function renderAudienceItem(q) {
-        const isMobile = isMobileLayout();
+        const isMobile = appState.isMobile;
         const statusChip = q.status === 'ANSWERED'
           ? '<span class="status-chip answered">回答済み</span>'
           : '';
@@ -2587,7 +2590,7 @@ function getAdminKeyCached() {
 
         if (VIEW === 'screen') {
           root.innerHTML = questions.map(renderScreenItem).join('');
-        } else if (VIEW === 'audience' && !isMobileLayout()) {
+        } else if (VIEW === 'audience' && !appState.isMobile) {
           root.innerHTML = `<div class="audience-flat-list">${renderAudienceDesktopRows(questions)}</div>`;
         } else {
           root.innerHTML = questions.map(renderAudienceItem).join('');
@@ -2597,7 +2600,7 @@ function getAdminKeyCached() {
 
       function bindSwipeDelete() {
         if (VIEW !== 'audience') return;
-        if (!isMobileLayout()) return;
+        if (!appState.isMobile) return;
 
         const touchTargets = Array.from(document.querySelectorAll('.swipe-ready[data-qid], .swipe-ready[data-rid]'));
         touchTargets.forEach((el) => {
@@ -3060,7 +3063,7 @@ function getAdminKeyCached() {
         const brandHomeLink = document.getElementById('brandHomeLink');
         if (brandHomeLink) brandHomeLink.addEventListener('click', (event) => {
           event.preventDefault();
-          setView(isMobileLayout() ? 'audience' : 'screen');
+          setView(appState.isMobile ? 'audience' : 'screen');
         });
         // Floating tab bar (PC) + Mobile tabs: bind click events
         const tabIds = [
@@ -3117,7 +3120,7 @@ function getAdminKeyCached() {
 
       function setView(nextView) {
         const v = nextView === 'screen' ? 'screen' : (nextView === 'poll' ? 'poll' : (nextView === 'vote' ? 'vote' : 'audience'));
-        if (isMobileLayout() && v === 'screen') {
+        if (appState.isMobile && v === 'screen') {
           VIEW = 'audience';
           applyFromToolbar();
           return;
@@ -3159,10 +3162,14 @@ function getAdminKeyCached() {
 
       async function init() {
         refreshActorToken();
+        appState.isMobile = isMobileLayout();
+        window.addEventListener('resize', () => {
+          appState.isMobile = isMobileLayout();
+        });
         loadReadState();
         await loadVoteDraft();
         updateStartGuideVisibility();
-        if (isMobileLayout() && VIEW === 'screen') {
+        if (appState.isMobile && VIEW === 'screen') {
           VIEW = 'audience';
         }
         installPollTapGuard();
