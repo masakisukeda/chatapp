@@ -484,6 +484,18 @@
           background: var(--mobile-post-btn-bg-dark-strong);
           color: var(--mobile-post-btn-text-dark);
         }
+        /* ハートボタン全体（デスクトップ含む） */
+        body[data-theme="dark"] .like-count-btn.vote-action-btn {
+          background: var(--mobile-post-btn-bg-dark-strong);
+          border-color: var(--mobile-post-btn-border-dark);
+          color: var(--mobile-post-btn-text-dark);
+        }
+        /* 返信ボタン（デスクトップ） */
+        body[data-theme="dark"] .reply-form-audience .reply-form-actions > button.ghost:not(.like-count-btn) {
+          background: var(--mobile-post-btn-bg-dark-strong);
+          border-color: var(--mobile-post-btn-border-dark);
+          color: var(--mobile-post-btn-text-dark);
+        }
         body[data-theme="dark"] .mobile-post-btn.like-count-btn.vote-action-btn {
           background: transparent;
         }
