@@ -484,6 +484,9 @@
           background: var(--mobile-post-btn-bg-dark-strong);
           color: var(--mobile-post-btn-text-dark);
         }
+        body[data-theme="dark"] .mobile-post-btn.like-count-btn.vote-action-btn {
+          background: transparent;
+        }
         .mobile-post-btn-group {
           display: inline-flex;
           align-items: center;
