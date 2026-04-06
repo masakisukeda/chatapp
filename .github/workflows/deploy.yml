@@ -29,7 +29,9 @@ jobs:
           local-dir: ./
           exclude: |
             **/.git*
+            **/.git*/**
             **/.github*
+            **/.github*/**
             **/.DS_Store
             **/AGENTS.md
             **/CSS_RULES_V1.md
