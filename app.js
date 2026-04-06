@@ -135,6 +135,39 @@ const ADMIN_ACTIONS = new Set([
         });
       }
 
+      function renderButton({ label, onClick = '', className = '', variant = 'ghost', attrs = '', type = 'button' }) {
+        const classAttr = [variant, className].filter(Boolean).join(' ');
+        const typeAttr = type ? ` type="${type}"` : '';
+        const onClickAttr = onClick ? ` onclick="${onClick}"` : '';
+        const extraAttr = attrs ? ` ${attrs}` : '';
+        return `<button class="${classAttr}"${typeAttr}${onClickAttr}${extraAttr}>${label}</button>`;
+      }
+
+      function renderLikeButton({ onClick = '', count = 0, className = '', attrs = '', type = 'button' }) {
+        const voteCount = Number.isFinite(Number(count)) ? Number(count) : 0;
+        return renderButton({
+          label: `<span class="heart-mark" aria-hidden="true">♥︎</span> ${voteCount}`,
+          onClick,
+          className: ['like-count-btn', 'vote-action-btn', className].filter(Boolean).join(' '),
+          attrs,
+          type,
+        });
+      }
+
+      function createModal({ id, title, onBackdrop, onClose, bodyHtml, cardClass = '' }) {
+        const cardClassName = cardClass ? ` ${cardClass}` : '';
+        return `
+          <div id="${id}" class="modal" onclick="${onBackdrop}(event)">
+            <div class="modal-card${cardClassName}">
+              <div class="modal-head">
+                <h3>${title}</h3>
+                ${renderButton({ label: '×', onClick: onClose, className: 'modal-close' })}
+              </div>
+              ${bodyHtml}
+            </div>
+          </div>`;
+      }
+
       function isMobileLayout() {
         if (FORCED_LAYOUT === 'mobile') return true;
         if (FORCED_LAYOUT === 'desktop') return false;
@@ -2176,112 +2209,195 @@ function getAdminKeyCached() {
         return { timerHtml, actionHtml };
       }
 
-      function renderVotePanelHtml() {
-        const poll = appState.currentVotePoll;
-        const canManage = !appState.isMobile;
-        const activePollId = String((poll && poll.id) || appState.selectedVotePollId || '');
-        const voteNavHtml = canManage && Array.isArray(appState.votePollList) && appState.votePollList.length
-          ? `<div class="field" style="margin-top:12px;">
-              <div class="actions" style="margin-top:6px; flex-wrap:wrap;">
-                ${appState.votePollList.map((item, idx) => {
-                  const pollId = String(item && item.id || '');
-                  const title = String(item && item.questionText || '').trim() || `投票${idx + 1}`;
-                  const status = String(item && item.status || 'CLOSED') === 'OPEN' ? '進行中' : '終了';
-                  const label = `${idx + 1}. ${title.slice(0, 20)}${title.length > 20 ? '…' : ''}（${status}）`;
-                  return `<button class="ghost ${pollId === activePollId ? 'active' : ''}" onclick="openVotePollById('${esc(pollId)}')" ${pollId === activePollId ? 'disabled' : ''}>${esc(label)}</button>`;
-                }).join('')}
-              </div>
-            </div>`
-          : '';
-        if (!poll || appState.forceVoteComposer) {
-          appState.votePrevRankMap = new Map();
-          appState.votePrevWidthMap = new Map();
-          const err = appState.voteLoadError ? `<div class="muted-note" style="color:#dc4c64;">${esc(appState.voteLoadError)}</div><div class="actions" style="margin-top:8px;"><button class="ghost" onclick="retryLoadVotePoll()">再取得</button></div>` : '';
-          if (appState.isMobile) {
-            return `<div class="card poll-box"><p class="poll-q">投票</p><div class="muted-note">運営が投票を開始すると、ここに選択肢が表示されます。</div>${err}</div>`;
-          }
-          const editorRows = (appState.voteDraftOptionList || []).map((opt, idx) => `
-            <div class="poll-input-row poll-input-row-editor">
-              <input value="${esc(opt)}" maxlength="80" oninput="updateVoteOptionDraft(${idx}, this.value)" placeholder="選択肢">
-              <button class="ghost" onclick="removeVoteOptionDraft(${idx})">削除</button>
-            </div>`).join("");
-          return `
-            <div class="card poll-box">
-              <p class="poll-q">ライブ投票を作成（運営）</p>
-              <div class="poll-meta">作成数 ${Number(appState.votePollCount || 0)} / ${Number(appState.votePollLimit || 3)}</div>
-              ${voteNavHtml}
-              <div class="field">
-                <label>投票タイトル</label>
-                <input value="${esc(appState.voteDraftQuestion)}" maxlength="200" oninput="appState.voteDraftQuestion=this.value;saveVoteDraft()" placeholder="例）今日もっと聞きたいのは？">
-              </div>
-              <div class="field">
-                <label>選択肢（2〜6）</label>
-                ${editorRows}
-              </div>
-              <div class="field">
-                <label>1人あたり投票上限</label>
-                <div class="actions" style="margin-top:4px; align-items:center;">
-                  <button class="ghost ${appState.voteDraftMaxVotesPerUser > 0 ? 'active' : ''}" onclick="setVoteMaxMode('single')">${appState.voteDraftMaxVotesPerUser > 0 ? '☑︎' : '☐'} 単一フォーム</button>
-                  <input type="number" min="1" max="1000" step="1" value="${Number(appState.voteDraftMaxVotesPerUser > 0 ? appState.voteDraftMaxVotesPerUser : 5)}" oninput="setVoteMaxDraft(this.value)" ${appState.voteDraftMaxVotesPerUser === 0 ? 'disabled' : ''} style="width:84px; min-width:84px; text-align:right;" aria-label="1人あたり上限票">
-                  <span class="poll-meta" style="margin:0;">票</span>
-                  <button class="ghost ${appState.voteDraftMaxVotesPerUser === 0 ? 'active' : ''}" onclick="setVoteMaxMode('unlimited')">${appState.voteDraftMaxVotesPerUser === 0 ? '☑︎' : '☐'} 無制限</button>
-                </div>
-              </div>
-              <div class="field">
-                <label>タイマー（分）</label>
-                <div class="actions" style="margin-top:4px; align-items:center;">
-                  <input type="number" min="0" max="720" step="1" value="${Number(appState.voteDraftTimerMinutes || 0)}" oninput="setVoteTimerDraft(this.value)" style="width:96px; min-width:96px; text-align:right;" aria-label="投票タイマー分">
-                  <span class="poll-meta" style="margin:0;">分</span>
-                  <span class="poll-meta" style="margin:0;">0でタイマーなし</span>
-                </div>
-              </div>
-              <div class="actions" style="margin-top:8px;">
-                <button class="ghost" onclick="addVoteOptionDraft()">選択肢追加</button>
-                ${poll ? `<button class="ghost" onclick="appState.forceVoteComposer=false;renderPanel()">結果に戻る</button>` : ''}
-                <button class="primary" onclick="createVotePoll()" ${canCreateMoreVotePolls() ? '' : 'disabled'}>投票開始</button>
-              </div>
-              ${canCreateMoreVotePolls() ? '' : `<div class="poll-meta" style="margin-top:8px;">上限に達したため、新規作成はできません</div>`}
-            </div>`;
-        }
+      function renderVoteNavHtml(activePollId) {
+        if (appState.isMobile || !Array.isArray(appState.votePollList) || !appState.votePollList.length) return '';
+        return `<div class="field" style="margin-top:12px;">
+            <div class="actions" style="margin-top:6px; flex-wrap:wrap;">
+              ${appState.votePollList.map((item, idx) => {
+                const pollId = String(item && item.id || '');
+                const title = String(item && item.questionText || '').trim() || `投票${idx + 1}`;
+                const status = String(item && item.status || 'CLOSED') === 'OPEN' ? '進行中' : '終了';
+                const label = `${idx + 1}. ${title.slice(0, 20)}${title.length > 20 ? '…' : ''}（${status}）`;
+                return renderButton({
+                  label: esc(label),
+                  onClick: `openVotePollById('${esc(pollId)}')`,
+                  className: pollId === activePollId ? 'active' : '',
+                  attrs: pollId === activePollId ? 'disabled' : '',
+                });
+              }).join('')}
+            </div>
+          </div>`;
+      }
 
+      function buildVotePanelContext(poll) {
         const options = Array.isArray(poll.options) ? poll.options : [];
         const counts = Array.isArray(poll.counts) ? poll.counts : [];
-        const isMobileVote = appState.isMobile;
         const baseModels = options.map((label, idx) => ({ idx, label, count: Number(counts[idx] || 0) }));
-        const rowModels = isMobileVote
-          ? baseModels
-          : baseModels.slice().sort((a, b) => (b.count !== a.count ? b.count - a.count : a.idx - b.idx));
         const sortedByCount = baseModels.slice().sort((a, b) => (b.count !== a.count ? b.count - a.count : a.idx - b.idx));
         const leaderCount = sortedByCount.length ? sortedByCount[0].count : 0;
         const leaderDiff = Math.max(0, leaderCount - (sortedByCount[1] ? sortedByCount[1].count : 0));
-        const myVotes = Array.isArray(poll.myVotes) ? poll.myVotes : [];
-        const myChoiceCounts = (poll && typeof poll.myChoiceCounts === "object" && poll.myChoiceCounts) ? poll.myChoiceCounts : {};
-        const myVoteTotal = Number(poll.myVoteTotal || 0);
-        const maxVotes = Number(poll.maxVotesPerUser || 0);
-        const pollOpen = String(poll.status || 'OPEN') === 'OPEN';
-        const footerView = renderVoteFooter(poll, canManage, pollOpen);
-        if (isMobileVote) {
+        return {
+          baseModels,
+          leaderCount,
+          leaderDiff,
+          myVotes: Array.isArray(poll.myVotes) ? poll.myVotes : [],
+          myChoiceCounts: (poll && typeof poll.myChoiceCounts === "object" && poll.myChoiceCounts) ? poll.myChoiceCounts : {},
+          myVoteTotal: Number(poll.myVoteTotal || 0),
+          maxVotes: Number(poll.maxVotesPerUser || 0),
+          pollOpen: String(poll.status || 'OPEN') === 'OPEN',
+        };
+      }
+
+      function renderVoteComposerPanel(poll, voteNavHtml) {
+        const editorRows = (appState.voteDraftOptionList || []).map((opt, idx) => `
+          <div class="poll-input-row poll-input-row-editor">
+            <input value="${esc(opt)}" maxlength="80" oninput="updateVoteOptionDraft(${idx}, this.value)" placeholder="選択肢">
+            ${renderButton({ label: '削除', onClick: `removeVoteOptionDraft(${idx})` })}
+          </div>`).join("");
+        return `
+          <div class="card poll-box">
+            <p class="poll-q">ライブ投票を作成（運営）</p>
+            <div class="poll-meta">作成数 ${Number(appState.votePollCount || 0)} / ${Number(appState.votePollLimit || 3)}</div>
+            ${voteNavHtml}
+            <div class="field">
+              <label>投票タイトル</label>
+              <input value="${esc(appState.voteDraftQuestion)}" maxlength="200" oninput="appState.voteDraftQuestion=this.value;saveVoteDraft()" placeholder="例）今日もっと聞きたいのは？">
+            </div>
+            <div class="field">
+              <label>選択肢（2〜6）</label>
+              ${editorRows}
+            </div>
+            <div class="field">
+              <label>1人あたり投票上限</label>
+              <div class="actions" style="margin-top:4px; align-items:center;">
+                ${renderButton({
+                  label: `${appState.voteDraftMaxVotesPerUser > 0 ? '☑︎' : '☐'} 単一フォーム`,
+                  onClick: "setVoteMaxMode('single')",
+                  className: appState.voteDraftMaxVotesPerUser > 0 ? 'active' : '',
+                })}
+                <input type="number" min="1" max="1000" step="1" value="${Number(appState.voteDraftMaxVotesPerUser > 0 ? appState.voteDraftMaxVotesPerUser : 5)}" oninput="setVoteMaxDraft(this.value)" ${appState.voteDraftMaxVotesPerUser === 0 ? 'disabled' : ''} style="width:84px; min-width:84px; text-align:right;" aria-label="1人あたり上限票">
+                <span class="poll-meta" style="margin:0;">票</span>
+                ${renderButton({
+                  label: `${appState.voteDraftMaxVotesPerUser === 0 ? '☑︎' : '☐'} 無制限`,
+                  onClick: "setVoteMaxMode('unlimited')",
+                  className: appState.voteDraftMaxVotesPerUser === 0 ? 'active' : '',
+                })}
+              </div>
+            </div>
+            <div class="field">
+              <label>タイマー（分）</label>
+              <div class="actions" style="margin-top:4px; align-items:center;">
+                <input type="number" min="0" max="720" step="1" value="${Number(appState.voteDraftTimerMinutes || 0)}" oninput="setVoteTimerDraft(this.value)" style="width:96px; min-width:96px; text-align:right;" aria-label="投票タイマー分">
+                <span class="poll-meta" style="margin:0;">分</span>
+                <span class="poll-meta" style="margin:0;">0でタイマーなし</span>
+              </div>
+            </div>
+            <div class="actions" style="margin-top:8px;">
+              ${renderButton({ label: '選択肢追加', onClick: 'addVoteOptionDraft()' })}
+              ${poll ? renderButton({ label: '結果に戻る', onClick: 'appState.forceVoteComposer=false;renderPanel()' }) : ''}
+              ${renderButton({ label: '投票開始', variant: 'primary', onClick: 'createVotePoll()', attrs: canCreateMoreVotePolls() ? '' : 'disabled' })}
+            </div>
+            ${canCreateMoreVotePolls() ? '' : `<div class="poll-meta" style="margin-top:8px;">上限に達したため、新規作成はできません</div>`}
+          </div>`;
+      }
+
+      function renderVotePanelMobile(poll) {
+        if (!poll || appState.forceVoteComposer) {
           appState.votePrevRankMap = new Map();
           appState.votePrevWidthMap = new Map();
-          const rows = renderVoteOptions(rowModels, { isMobileVote, myVotes, myChoiceCounts, pollOpen, leaderCount, leaderDiff });
-          return `
-            <div class="card poll-box">
-              ${renderVoteHeader(poll, myVoteTotal, maxVotes, footerView.timerHtml)}
-              ${renderVoteResult(rows, '')}
-            </div>`;
+          const err = appState.voteLoadError
+            ? `<div class="muted-note" style="color:#dc4c64;">${esc(appState.voteLoadError)}</div><div class="actions" style="margin-top:8px;">${renderButton({ label: '再取得', onClick: 'retryLoadVotePoll()' })}</div>`
+            : '';
+          return `<div class="card poll-box"><p class="poll-q">投票</p><div class="muted-note">運営が投票を開始すると、ここに選択肢が表示されます。</div>${err}</div>`;
         }
-        const rows = renderVoteOptions(rowModels, { isMobileVote, myVotes, myChoiceCounts, pollOpen, leaderCount, leaderDiff });
+        const voteView = buildVotePanelContext(poll);
+        const footerView = renderVoteFooter(poll, false, voteView.pollOpen);
+        appState.votePrevRankMap = new Map();
+        appState.votePrevWidthMap = new Map();
+        const rows = renderVoteOptions(voteView.baseModels, { ...voteView, isMobileVote: true });
+        return `
+          <div class="card poll-box">
+            ${renderVoteHeader(poll, voteView.myVoteTotal, voteView.maxVotes, footerView.timerHtml)}
+            ${renderVoteResult(rows, '')}
+          </div>`;
+      }
+
+      function renderVotePanelDesktop(poll, voteNavHtml) {
+        if (!poll || appState.forceVoteComposer) {
+          appState.votePrevRankMap = new Map();
+          appState.votePrevWidthMap = new Map();
+          return renderVoteComposerPanel(poll, voteNavHtml);
+        }
+        const voteView = buildVotePanelContext(poll);
+        const footerView = renderVoteFooter(poll, true, voteView.pollOpen);
+        const rowModels = voteView.baseModels.slice().sort((a, b) => (b.count !== a.count ? b.count - a.count : a.idx - b.idx));
+        const rows = renderVoteOptions(rowModels, { ...voteView, isMobileVote: false });
         appState.votePrevRankMap = new Map(rowModels.map((row, rankIdx) => [row.idx, rankIdx]));
         appState.votePrevWidthMap = new Map(rowModels.map((row) => {
-          const width = leaderCount > 0 ? Math.max(0, Math.min(100, Math.round((row.count / leaderCount) * 100))) : 0;
+          const width = voteView.leaderCount > 0 ? Math.max(0, Math.min(100, Math.round((row.count / voteView.leaderCount) * 100))) : 0;
           return [row.idx, width];
         }));
         return `
           <div class="card poll-box">
-            ${renderVoteHeader(poll, myVoteTotal, maxVotes, footerView.timerHtml)}
+            ${renderVoteHeader(poll, voteView.myVoteTotal, voteView.maxVotes, footerView.timerHtml)}
             ${renderVoteResult(rows, voteNavHtml)}
             ${footerView.actionHtml}
           </div>`;
+      }
+
+      function renderVotePanelHtml() {
+        const poll = appState.currentVotePoll;
+        const activePollId = String((poll && poll.id) || appState.selectedVotePollId || '');
+        const voteNavHtml = renderVoteNavHtml(activePollId);
+        return appState.isMobile
+          ? renderVotePanelMobile(poll)
+          : renderVotePanelDesktop(poll, voteNavHtml);
+      }
+
+      function renderQuestionModalHtml() {
+        const bodyHtml = `
+          <div class="field">
+            <label>名前</label>
+            <input id="modalName" maxlength="40" placeholder="例）すけだ" value="${esc(getDisplayName())}">
+          </div>
+          <div class="field">
+            <label>質問</label>
+            <textarea id="modalQuestion" placeholder="例）今回の機能で一番効果が高い使い方は？"></textarea>
+          </div>
+          <div class="actions">
+            ${renderButton({ label: '送信🐮', variant: 'primary', onClick: 'submitQ()' })}
+          </div>`;
+        return createModal({
+          id: 'questionModal',
+          title: '質問を投稿🐮',
+          onBackdrop: 'onModalBackdrop',
+          onClose: 'closeQuestionModal()',
+          bodyHtml,
+        });
+      }
+
+      function renderReplyModalHtml() {
+        const bodyHtml = `
+          <input id="modalReplyQuestionId" type="hidden">
+          <p class="reply-modal-target" id="replyModalTarget"></p>
+          <div class="field">
+            <label>名前</label>
+            <input id="replyModalName" maxlength="40" placeholder="例）すけだ" value="${esc(getDisplayName())}">
+          </div>
+          <div class="field">
+            <label>コメント</label>
+            <textarea id="modalReplyText" placeholder="返信コメントを入力してください"></textarea>
+          </div>
+          <div class="actions">
+            ${renderButton({ label: '返信する', variant: 'primary', onClick: 'submitReplyModal()' })}
+          </div>`;
+        return createModal({
+          id: 'replyModal',
+          title: 'コメントを返信',
+          onBackdrop: 'onReplyModalBackdrop',
+          onClose: 'closeReplyModal()',
+          bodyHtml,
+        });
       }
 
       function renderPanel() {
@@ -2308,104 +2424,70 @@ function getAdminKeyCached() {
               <p class="start-guide-title">このイベント（${esc(SESSION)}）で投稿を開始します</p>
               <p class="start-guide-text">右下の＋から質問できます。</p>
               <div class="actions">
-                <button class="ghost" onclick="dismissStartGuide(false)">OK</button>
-                <button class="primary" onclick="dismissStartGuide(true)">投稿する</button>
+                ${renderButton({ label: 'OK', onClick: 'dismissStartGuide(false)' })}
+                ${renderButton({ label: '投稿する', variant: 'primary', onClick: 'dismissStartGuide(true)' })}
               </div>
             </div>
           ` : '';
           panel.innerHTML = `
             ${startGuideHtml}
-            <div id="questionModal" class="modal" onclick="onModalBackdrop(event)">
-            <div class="modal-card">
-              <div class="modal-head">
-                <h3>質問を投稿🐮</h3>
-                  <button class="ghost modal-close" onclick="closeQuestionModal()">×</button>
-                </div>
-                <div class="field">
-                  <label>名前</label>
-                  <input id="modalName" maxlength="40" placeholder="例）すけだ" value="${esc(getDisplayName())}">
-                </div>
-                <div class="field">
-                  <label>質問</label>
-                  <textarea id="modalQuestion" placeholder="例）今回の機能で一番効果が高い使い方は？"></textarea>
-                </div>
-                <div class="actions">
-                  <button class="primary" onclick="submitQ()">送信🐮</button>
-                </div>
-              </div>
-            </div>
-            <div id="replyModal" class="modal" onclick="onReplyModalBackdrop(event)">
-              <div class="modal-card">
-                <div class="modal-head">
-                  <h3>コメントを返信</h3>
-                  <button class="ghost modal-close" onclick="closeReplyModal()">×</button>
-                </div>
-                <input id="modalReplyQuestionId" type="hidden">
-                <p class="reply-modal-target" id="replyModalTarget"></p>
-                <div class="field">
-                  <label>名前</label>
-                  <input id="replyModalName" maxlength="40" placeholder="例）すけだ" value="${esc(getDisplayName())}">
-                </div>
-                <div class="field">
-                  <label>コメント</label>
-                  <textarea id="modalReplyText" placeholder="返信コメントを入力してください"></textarea>
-                </div>
-                <div class="actions">
-                  <button class="primary" onclick="submitReplyModal()">返信する</button>
-                </div>
-              </div>
-            </div>
-            <button class="primary fab" onclick="openQuestionModal()">+</button>`;
+            ${renderQuestionModalHtml()}
+            ${renderReplyModalHtml()}
+            ${renderButton({ label: '+', variant: 'primary', className: 'fab', onClick: 'openQuestionModal()' })}`;
           return;
         }
 
         panel.innerHTML = screenPanel;
       }
 
-      function renderAudienceItem(q) {
-        const isMobile = appState.isMobile;
-        const statusChip = q.status === 'ANSWERED'
-          ? '<span class="status-chip answered">回答済み</span>'
+      function renderAudienceMetaActions(canEdit, canDelete, editHtml, deleteHtml) {
+        const editMeta = canEdit ? editHtml : '';
+        const deleteMeta = canDelete ? deleteHtml : '';
+        return (editMeta || deleteMeta)
+          ? `<span class="meta-actions">${editMeta}${deleteMeta}</span>`
           : '';
-        const pinChip = q.pinned ? '<span class="status-chip">📍</span>' : '';
-        const canForceDelete = !isMobile && !!getAdminKeyCached();
-        const canEditQuestion = canForceDelete;
-        const canDeleteQuestion = canForceDelete || !!q.isMine;
-        const questionEditMeta = canEditQuestion
-          ? ` <button class="meta-edit-link" type="button" onclick="editQuestionAsAdmin('${esc(q.id)}')">編集</button>`
-          : '';
-        const deleteMeta = canDeleteQuestion
-          ? ` <button class="meta-delete-link" type="button" onclick="deleteMyQuestion('${esc(q.id)}')">削除</button>`
-          : '';
-        const questionMetaActions = (questionEditMeta || deleteMeta)
-          ? `<span class="meta-actions">${questionEditMeta}${deleteMeta}</span>`
-          : '';
-        const questionSwipeClass = canDeleteQuestion ? ' swipe-ready' : '';
+      }
+
+      function renderAudienceReplies(q, canForceDelete, replyLikeClassName) {
         const replies = Array.isArray(q.replies) ? q.replies : [];
-        const repliesHtml = replies.map((r) => {
+        return replies.map((r) => {
           const canEditReply = canForceDelete;
           const canDeleteReply = canForceDelete || !!r.isMine;
-          const replyEditMeta = canEditReply
-            ? ` <button class="meta-edit-link" type="button" onclick="editReplyAsAdmin('${esc(q.id)}','${esc(r.id)}')">編集</button>`
-            : '';
-          const replyDeleteMeta = canDeleteReply
-            ? ` <button class="meta-delete-link" type="button" onclick="deleteMyReply('${esc(q.id)}','${esc(r.id)}')">削除</button>`
-            : '';
-          const replyMetaActions = (replyEditMeta || replyDeleteMeta)
-            ? `<span class="meta-actions">${replyEditMeta}${replyDeleteMeta}</span>`
-            : '';
+          const replyMetaActions = renderAudienceMetaActions(
+            canEditReply,
+            canDeleteReply,
+            ` <button class="meta-edit-link" type="button" onclick="editReplyAsAdmin('${esc(q.id)}','${esc(r.id)}')">編集</button>`,
+            ` <button class="meta-delete-link" type="button" onclick="deleteMyReply('${esc(q.id)}','${esc(r.id)}')">削除</button>`
+          );
           const replySwipeClass = canDeleteReply ? ' swipe-ready' : '';
           return `
           <div class="reply-item${replySwipeClass}" data-rid="${esc(r.id)}" data-qid="${esc(q.id)}">
             <p class="reply-text">${linkifyText(r.replyText)}</p>
             <div class="reply-meta reply-meta-audience"><span class="reply-meta-main">${esc(r.displayName)} ・ ${new Date(r.createdAt).toLocaleString()}</span>${replyMetaActions}</div>
             <div class="reply-actions reply-actions-audience">
-              <button class="ghost like-count-btn vote-action-btn mobile-post-btn" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${r.votes || 0}</button>
+              ${renderLikeButton({ onClick: `voteReply('${esc(q.id)}','${esc(r.id)}')`, count: r.votes || 0, className: replyLikeClassName })}
             </div>
           </div>
         `;
         }).join('');
-        const audienceLayoutClass = isMobile ? '' : ' q-item-audience-desktop';
+      }
+
+      function renderAudienceItemLayout(q, { canForceDelete, audienceLayoutClass, mobileButtonClass }) {
+        const statusChip = q.status === 'ANSWERED'
+          ? '<span class="status-chip answered">回答済み</span>'
+          : '';
+        const pinChip = q.pinned ? '<span class="status-chip">📍</span>' : '';
+        const canDeleteQuestion = canForceDelete || !!q.isMine;
+        const questionMetaActions = renderAudienceMetaActions(
+          canForceDelete,
+          canDeleteQuestion,
+          ` <button class="meta-edit-link" type="button" onclick="editQuestionAsAdmin('${esc(q.id)}')">編集</button>`,
+          ` <button class="meta-delete-link" type="button" onclick="deleteMyQuestion('${esc(q.id)}')">削除</button>`
+        );
+        const questionSwipeClass = canDeleteQuestion ? ' swipe-ready' : '';
+        const replies = Array.isArray(q.replies) ? q.replies : [];
+        const repliesHtml = renderAudienceReplies(q, canForceDelete, mobileButtonClass);
+        const mobileLikeClassName = ['q-like-mobile', mobileButtonClass].filter(Boolean).join(' ');
         return `
           <article class="card q-item q-item-audience${audienceLayoutClass}${questionSwipeClass}" data-qid="${esc(q.id)}">
             <div class="q-main">
@@ -2414,15 +2496,35 @@ function getAdminKeyCached() {
               ${replies.length ? `<div class="replies">${repliesHtml}</div>` : ''}
               <div class="reply-form reply-form-audience">
                 <div class="reply-form-actions mobile-post-btn-group">
-                  <button class="ghost mobile-post-btn" onclick="submitReply('${esc(q.id)}')">返信</button>
-                  <button class="ghost like-count-btn vote-action-btn q-like-mobile mobile-post-btn" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes}</button>
+                  ${renderButton({ label: '返信', onClick: `submitReply('${esc(q.id)}')`, className: mobileButtonClass })}
+                  ${renderLikeButton({ onClick: `vote('${esc(q.id)}')`, count: q.votes || 0, className: mobileLikeClassName })}
                 </div>
               </div>
             </div>
             <div class="q-side q-side-audience">
-              <button class="ghost like-count-btn vote-action-btn q-like-desktop" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes}</button>
+              ${renderLikeButton({ onClick: `vote('${esc(q.id)}')`, count: q.votes || 0, className: 'q-like-desktop' })}
             </div>
           </article>`;
+      }
+
+      function renderAudienceItemMobile(q) {
+        return renderAudienceItemLayout(q, {
+          canForceDelete: false,
+          audienceLayoutClass: '',
+          mobileButtonClass: 'mobile-post-btn',
+        });
+      }
+
+      function renderAudienceItemDesktop(q) {
+        return renderAudienceItemLayout(q, {
+          canForceDelete: !!getAdminKeyCached(),
+          audienceLayoutClass: ' q-item-audience-desktop',
+          mobileButtonClass: '',
+        });
+      }
+
+      function renderAudienceItem(q) {
+        return appState.isMobile ? renderAudienceItemMobile(q) : renderAudienceItemDesktop(q);
       }
 
       function renderAudienceDesktopRows(questions) {
@@ -2456,7 +2558,11 @@ function getAdminKeyCached() {
           const questionDeleteAction = canDeleteQuestion
             ? `<button class="ghost feed-action-btn" type="button" onclick="deleteMyQuestion('${esc(q.id)}')">削除</button>`
             : '';
-          const questionHeartAction = `<button class="ghost like-count-btn vote-action-btn feed-action-btn" type="button" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes || 0}</button>`;
+          const questionHeartAction = renderLikeButton({
+            onClick: `vote('${esc(q.id)}')`,
+            count: q.votes || 0,
+            className: 'feed-action-btn',
+          });
           entries.push({
             type: 'q',
             ts: latestQuestionTs,
@@ -2482,7 +2588,11 @@ function getAdminKeyCached() {
             const replyDeleteAction = canDeleteReply
               ? `<button class="ghost feed-action-btn" type="button" onclick="deleteMyReply('${esc(q.id)}','${esc(r.id)}')">削除</button>`
               : '';
-            const replyHeartAction = `<button class="ghost like-count-btn vote-action-btn feed-action-btn" type="button" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${r.votes || 0}</button>`;
+            const replyHeartAction = renderLikeButton({
+              onClick: `voteReply('${esc(q.id)}','${esc(r.id)}')`,
+              count: r.votes || 0,
+              className: 'feed-action-btn',
+            });
             entries.push({
               type: 'r',
               ts: toTime(r.createdAt),
@@ -2527,7 +2637,7 @@ function getAdminKeyCached() {
             <p class="reply-text">${linkifyText(r.replyText)}</p>
             <div class="reply-meta">${esc(r.displayName)} ・ ${new Date(r.createdAt).toLocaleString()}</div>
             <div class="reply-actions">
-              <button class="ghost like-count-btn vote-action-btn" onclick="voteReply('${esc(q.id)}','${esc(r.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${r.votes || 0}</button>
+              ${renderLikeButton({ onClick: `voteReply('${esc(q.id)}','${esc(r.id)}')`, count: r.votes || 0 })}
             </div>
           </div>
         `).join('');
@@ -2543,7 +2653,7 @@ function getAdminKeyCached() {
               </div>
             </div>
             <div class="q-side">
-              <button class="ghost like-count-btn vote-action-btn" onclick="vote('${esc(q.id)}')"><span class="heart-mark" aria-hidden="true">♥︎</span> ${q.votes}</button>
+              ${renderLikeButton({ onClick: `vote('${esc(q.id)}')`, count: q.votes || 0 })}
             </div>
           </article>`;
       }
