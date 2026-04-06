@@ -8,7 +8,7 @@
 - スコープは `/app` `/chat` `/dic` `/mng` のみ。無関係フォルダの編集・デプロイは禁止。
 - 通常デプロイは `main` へ push -> GitHub Actions で実施（直接FTPアップロードは禁止）。
 - `/chat` の公開反映先は `/public_html/drsp.cc/chat`（`/virtual/sukeda/public_html/chat` と `/virtual/sukeda/public_html/drsp.cc/chat` は非公開側の旧/別パス）。
-- `deploy.yml` は `SamKirkland/FTP-Deploy-Action@v4` を使い、`server-dir: /public_html/drsp.cc/chat/` へ反映する（`CHAT_FTP_BASE` は未使用）。
+- `deploy.yml` は `SamKirkland/FTP-Deploy-Action@v4.3.6` を使い、`server-dir: /public_html/drsp.cc/chat/` へ反映する（`CHAT_FTP_BASE` は未使用）。
 - PHP構文チェックは `ci.yml` で実施し、`deploy.yml` では実施しない。
 
 ## 1. 対象

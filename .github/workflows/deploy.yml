@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Deploy via FTP
-        uses: SamKirkland/FTP-Deploy-Action@v4
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
         with:
           server: ${{ secrets.CHAT_FTP_HOST }}
           username: ${{ secrets.CHAT_FTP_USER }}
