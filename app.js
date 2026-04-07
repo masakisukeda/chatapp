@@ -51,6 +51,7 @@
         readQuestionIds: new Set(),
         serverRevision: 0,
         latestLoadSeq: 0,
+        voteLoadSeq: 0,
         isLoading: false,
         turboUntil: 0,
         voteCountdownRemainingSec: -1,
@@ -1857,6 +1858,8 @@ function getAdminKeyCached() {
       }
 
       async function loadVotePoll() {
+        const seq = ++appState.voteLoadSeq;
+        const requestedSession = SESSION;
         const prevPoll = appState.currentVotePoll;
         const prevErr = appState.voteLoadError;
         const pollKey = (p) => {
@@ -1890,6 +1893,7 @@ function getAdminKeyCached() {
 
         try {
           const res = await api("getPoll", { sessionCode: SESSION, voterToken, pollId: appState.selectedVotePollId });
+          if (seq !== appState.voteLoadSeq || requestedSession !== SESSION) return;
           const poll = res && res.poll ? res.poll : null;
           appState.votePollCount = Math.max(0, Number(res && res.pollCount || 0));
           appState.votePollLimit = Math.max(1, Number(res && res.maxPolls || 3));
@@ -1906,6 +1910,7 @@ function getAdminKeyCached() {
           }
           return;
         } catch (e) {
+          if (seq !== appState.voteLoadSeq || requestedSession !== SESSION) return;
           appState.voteLoadError = e && e.message ? String(e.message) : '投票データの取得に失敗しました';
         }
 
@@ -1919,6 +1924,7 @@ function getAdminKeyCached() {
           u.searchParams.set('_t', String(Date.now()));
           const r = await fetch(u.toString(), { cache: 'no-store' });
           const j = await r.json();
+          if (seq !== appState.voteLoadSeq || requestedSession !== SESSION) return;
           if (j && j.ok) {
             appState.votePollCount = Math.max(0, Number(j && j.pollCount || appState.votePollCount || 0));
             appState.votePollLimit = Math.max(1, Number(j && j.maxPolls || appState.votePollLimit || 3));
@@ -1938,6 +1944,7 @@ function getAdminKeyCached() {
         } catch (e2) {
           // no-op
         }
+        if (seq !== appState.voteLoadSeq || requestedSession !== SESSION) return;
 
         // 取得失敗時は既存データを保持（nullで消さない）
         syncVoteTargetMenuUi();
@@ -2973,6 +2980,7 @@ function getAdminKeyCached() {
         appState.serverRevision = 0;
         fastSyncToken += 1;
         appState.latestLoadSeq += 1;
+        appState.voteLoadSeq += 1;
 
         syncCompactUrl();
 
